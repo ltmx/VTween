@@ -5,7 +5,6 @@
  Note: This is not a direct replacement to LeanTween although the APIs are quite similar.
  
  
- # ToDo  
- - CustomYieldInstruction. Currently uses it's own timing. Currently this is a priarity!  
+ **ToDo:**  
+ - CustomYieldInstruction. Currently uses it's own timing. This the highest priority!  
  - Port more LeanTween apis.    
- 
