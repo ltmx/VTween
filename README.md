@@ -4,6 +4,25 @@
  Well, LeanTween isn't maintained anymore and it doesn't work with UIToolkit(still the best tweening library in my heart!)  
  Note: This is not a direct replacement to LeanTween although the APIs are quite similar.
  
+ <br>Syntax</br>
+```
+                //Move
+                VTween.move(obj, target, duration).setOnComplete(()=>
+                {
+                    UnityEngine.Debug.Log("Was completed!");
+                    
+                }).setEase(easeTest).setLoop(loopCount).setPingPong(pingPong).setOnCompleteRepeat(true);
+
+                //Rotate
+                VTween.rotate(ThreeDObject, rotationInVec3, Vector3.forward, duration).setEase(easeTest).setLoop(loopCount).setPingPong(true);
+                
+                //Scale
+                VTween.scale(obj, new Vector3(2, 2, 2), duration).setEase(easeTest).setLoop(loopCount);
+
+                //ExecuteLater (Similar to LeanTween.delayedCall)
+                VTween.execLater(5, ()=> {UnityEngine.Debug.Log("Done waiting!");});
+                
+```
  
  **ToDo:**  
  - CustomYieldInstruction. Currently uses it's own timing. This the highest priority!  
