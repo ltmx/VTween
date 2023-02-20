@@ -8,9 +8,7 @@
  **ToDo:**  
  - CustomYieldInstruction. Currently uses it's own timing. This the highest priority!  
  - Port more LeanTween apis.    
- - Support for UIToolkit is on the way! Have issues with unique ids due to it doesn't have InstanceID by default.  
+ - Support for UIToolkit is on the way. 
 
-https://user-images.githubusercontent.com/64100867/220117141-e0228a60-4aff-4367-9119-6397e4173371.mp4
-
-
+https://user-images.githubusercontent.com/64100867/220118744-85f4dee1-a35b-4772-ae41-83688e9b810a.mp4
 
