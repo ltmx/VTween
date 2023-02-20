@@ -9,4 +9,8 @@
  - CustomYieldInstruction. Currently uses it's own timing. This the highest priority!  
  - Port more LeanTween apis.    
  - Support for UIToolkit is on the way! Have issues with unique ids due to it doesn't have InstanceID by default.  
- <video src="https://github.com/breadnone/VTween/blob/main/Assets/VTween/Tests/vtween_stress_test.mp4"></video>
+
+https://user-images.githubusercontent.com/64100867/220117141-e0228a60-4aff-4367-9119-6397e4173371.mp4
+
+
+
