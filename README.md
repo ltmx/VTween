@@ -6,6 +6,6 @@
  
  
  # ToDo  
- - CustomYieldInstruction. Currently uses it's own timing.  
+ - CustomYieldInstruction. Currently uses it's own timing. Currently this is a priarity!  
  - Port more LeanTween apis.    
  
