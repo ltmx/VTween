@@ -11,13 +11,13 @@
                 {
                     UnityEngine.Debug.Log("Was completed!");
                     
-                }).setEase(easeTest).setLoop(loopCount).setPingPong(pingPong).setOnCompleteRepeat(true);
+                }).setEase(Ease.Linear).setLoop(3).setPingPong(true).setOnCompleteRepeat(true);
 
                 //Rotate
-                VTween.rotate(ThreeDObject, rotationInVec3, Vector3.forward, duration).setEase(easeTest).setLoop(loopCount).setPingPong(true);
+                VTween.rotate(ThreeDObject, rotationInVec3, Vector3.forward, duration).setEase(Ease.Linear).setLoop(2).setPingPong(true);
                 
                 //Scale
-                VTween.scale(obj, new Vector3(2, 2, 2), duration).setEase(easeTest).setLoop(loopCount);
+                VTween.scale(obj, new Vector3(2, 2, 2), duration).setEase(Ease.Linear).setLoop(3);
 
                 //ExecuteLater (Similar to LeanTween.delayedCall)
                 VTween.execLater(5, ()=> {UnityEngine.Debug.Log("Done waiting!");});
