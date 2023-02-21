@@ -33,6 +33,14 @@ Download the .zip and unpack it to your Assets folder in your project.
                 //OR
                 VTween.alpha(visualElement, 0f, 1f, 5f); //for UIToolkit
                 
+                //Color
+                var legacyImage = gameObject.GetComponent<Image>();
+                VTween.color(legacyImage, new Color(0.2f, 0.1f, 0.2f, 1), 5);
+                
+                //Follow
+                var target = someTarget.GetComponent<Transform>();
+                VTween.follow(gameObject, target, new Vector3(0f, 0f, 0.1f), 5f);
+                
 ```
  
  **ToDo:**  
