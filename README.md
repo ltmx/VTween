@@ -28,6 +28,11 @@ Download the .zip and unpack it to your Assets folder in your project.
                 Image[] arr = new Image[11];
                 VTween.animation(arr, duration, 60).setDisableOnComplete(true).setLoop(loopCount).setPingPong(true);
                 
+                //Alpha
+                VTween.alpha(canvasGroup, 0f, 1f, 5f); //for legacy UI
+                //OR
+                VTween.alpha(visualElement, 0f, 1f, 5f); //for UIToolkit
+                
 ```
  
  **ToDo:**  
