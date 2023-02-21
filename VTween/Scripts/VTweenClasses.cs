@@ -321,15 +321,15 @@ namespace VTWeen
     {
         private Vector3 destination;
         private Transform fromIns;
-        private ITransform fromInsUi;
+        private IStyle fromInsUi;
         private Vector3 defaultPosition;
 
         ///<summary>Sets base values that aren't common properties of the base class.</summary>
-        public void SetBaseValues(Transform trans, ITransform itrans, Vector3 dest, Vector3 defPos, float time)
+        public void SetBaseValues(Transform trans, IStyle istyle, Vector3 dest, Vector3 defPos, float time)
         {
             destination = dest;
             fromIns = trans;
-            fromInsUi = itrans;
+            fromInsUi = istyle;
             defaultPosition = defPos;
             ivcommon.duration = time;
         }
@@ -356,7 +356,7 @@ namespace VTWeen
             else if (fromInsUi != null)
             {
                 if (!ivcommon.pingpong)
-                    fromInsUi.position = defaultPosition;
+                    fromInsUi.translate = new Translate(defaultPosition.x, defaultPosition.y, defaultPosition.z);
             }
 
             if (ivcommon.pingpong)
@@ -384,7 +384,8 @@ namespace VTWeen
                 }
                 else if (fromInsUi != null)
                 {
-                    fromInsUi.position = ivcommon.RunEaseTimeVector3(defaultPosition, destination);
+                    var tmp = ivcommon.RunEaseTimeVector3(defaultPosition, destination);
+                    fromInsUi.translate = new Translate(tmp.x, tmp.y, tmp.z);
                 }
             };
 
@@ -404,7 +405,7 @@ namespace VTWeen
             }
             else if (fromInsUi != null)
             {
-                fromInsUi.position = fromPosition;
+                fromInsUi.translate = new Translate(fromPosition.x, fromPosition.y, fromPosition.z);
             }
 
             defaultPosition = fromPosition;
@@ -634,7 +635,7 @@ namespace VTWeen
                 runningValue = from;
             }
         }
-        ///<summary>Ma even assignment of Exec method, refers to base class.</summary>
+        ///<summary>Main even assignment of Exec method, refers to base class.</summary>
         public void AssignMainEvent()
         {
             Action callback = () =>
@@ -658,16 +659,71 @@ namespace VTWeen
             return this;
         }
     }
+    ///<summary>Interpolates Vector4 value.</summary>
+    public class VTweenValueVector4 : VClass<VTweenValueVector4>
+    {
+        public Vector4 from;
+        public Vector4 to;
+        public Action<Vector4> incallback;
+        public Vector4 runningValue;
+
+        ///<summary>Sets base values that aren't common properties of the base class.</summary>
+        public void SetBaseValues(Vector4 fromValue, Vector4 toValue, float time, Action<Vector4> callbackEvent)
+        {
+            ivcommon.duration = time;
+            from = fromValue;
+            to = toValue;
+            incallback = callbackEvent;
+        }
+        ///<summary>Resets properties shuffle the destination</summary>
+        public override void LoopReset()
+        {
+            if (!ivcommon.pingpong)
+            {
+                runningValue = from;
+            }
+            else if (ivcommon.pingpong)
+            {
+                var dest = to;
+                to = from;
+                from = dest;
+                runningValue = from;
+            }
+        }
+        ///<summary>Ma even assignment of Exec method, refers to base class.</summary>
+        public void AssignMainEvent()
+        {
+            Action callback = () =>
+            {
+                runningValue = ivcommon.RunEaseTimeVector4(from, to);
+
+                if (incallback != null)
+                {
+                    incallback.Invoke(runningValue);
+                }
+            };
+
+            var t = new EventVRegister { callback = callback, id = 1 };
+            ivcommon.AddRegister(ref t);
+            VTweenManager.InsertToActiveTween(this);
+        }
+        ///<summary>Repositioning initial position of object.</summary>
+        public VTweenValueVector4 setFrom(Vector4 value)
+        {
+            from = value;
+            return this;
+        }
+    }
     ///<summary>Scales object. Maclass.</summary>
     public class VTweenScale : VClass<VTweenScale>
     {
         public Vector3 defaultScale;
         public Vector3 targetScale;
         public Transform transform;
-        public ITransform itransform;
+        public IStyle itransform;
 
         ///<summary>Sets base values that aren't common properties of the base class.</summary>
-        public void SetBaseValues(Transform trans, ITransform itrans, Vector3 destScale, Vector3 defScale, float time)
+        public void SetBaseValues(Transform trans, IStyle itrans, Vector3 destScale, Vector3 defScale, float time)
         {
             transform = trans;
             itransform = itrans;
@@ -686,7 +742,7 @@ namespace VTWeen
                 }
                 else if (itransform != null)
                 {
-                    itransform.scale = defaultScale;
+                    itransform.scale = new Scale(defaultScale);
                 }
             }
             else
@@ -707,7 +763,7 @@ namespace VTWeen
                 }
                 else if (itransform != null)
                 {
-                    itransform.scale = ivcommon.RunEaseTimeVector3(defaultScale, targetScale);
+                    itransform.scale = new Scale(ivcommon.RunEaseTimeVector3(defaultScale, targetScale));
                 }
             };
 
@@ -724,7 +780,7 @@ namespace VTWeen
             }
             else if (itransform != null)
             {
-                itransform.scale = fromScale;
+                itransform.scale = new Scale(fromScale);
             }
 
             defaultScale = fromScale;

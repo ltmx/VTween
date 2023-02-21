@@ -70,7 +70,7 @@ namespace VTWeen
         public static VTweenMove move(VisualElement visualElement, Vector3 to, float duration)
         {
             var instance = new VTweenMove();
-            instance.SetBaseValues(null, visualElement.transform, to, visualElement.transform.position, duration);
+            instance.SetBaseValues(null, visualElement.style, to, visualElement.transform.position, duration);
             instance.AssignMainEvent();
             return instance;
         }
@@ -127,7 +127,7 @@ namespace VTWeen
         {
             var instance = new VTweenMove();
             var trans = visualElement.transform;
-            instance.SetBaseValues(null, visualElement.transform, new Vector3(to, trans.position.y, trans.position.z), trans.position, duration);
+            instance.SetBaseValues(null, visualElement.style, new Vector3(to, trans.position.y, trans.position.z), trans.position, duration);
             instance.AssignMainEvent();
             return instance;
         }
@@ -174,7 +174,7 @@ namespace VTWeen
         {
             var instance = new VTweenMove();
             var trans = visualElement.transform;
-            instance.SetBaseValues(null, visualElement.transform, new Vector3(trans.position.x, to, trans.position.z), trans.position, duration);
+            instance.SetBaseValues(null, visualElement.style, new Vector3(trans.position.x, to, trans.position.z), trans.position, duration);
             instance.AssignMainEvent();
             return instance;
         }
@@ -213,15 +213,6 @@ namespace VTWeen
             var instance = new VTweenMove();
             var trans = transform;
             instance.SetBaseValues(trans, null, new Vector3(trans.position.x, trans.position.y, to), trans.position, duration);
-            instance.AssignMainEvent();
-            return instance;
-        }
-        ///<summary>Moves object based on object's Z axis of a VisualElement.</summary>
-        public static VTweenMove moveZ(VisualElement transform, float to, float duration)
-        {
-            var instance = new VTweenMove();
-            var trans = transform.transform;
-            instance.SetBaseValues(null, trans, new Vector3(trans.position.x, trans.position.y, to), trans.position, duration);
             instance.AssignMainEvent();
             return instance;
         }
@@ -291,6 +282,14 @@ namespace VTWeen
             var instance = new VTweenScale();
             var trans = gameObject.transform;
             instance.SetBaseValues(trans, null, targetTransform.localScale, trans.localScale, duration);
+            instance.AssignMainEvent();
+            return instance;
+        }
+        ///<summary>Scales object based on Vector3.</summary>
+        public static VTweenScale scale(VisualElement visualElement, Vector3 scaleValue, float duration)
+        {
+            var instance = new VTweenScale();
+            instance.SetBaseValues(null, visualElement.style, scaleValue, visualElement.style.scale.value.value, duration);
             instance.AssignMainEvent();
             return instance;
         }
@@ -398,6 +397,22 @@ namespace VTWeen
         {
             var instance = new VTweenValueVector3();
             instance.SetBaseValues(from, to, time, null);
+            instance.AssignMainEvent();
+            return instance;
+        }
+        ///<summary>Interpolates Vector4 value.</summary>
+        public static VTweenValueVector4 value(Vector4 from, Vector4 to, float time)
+        {
+            var instance = new VTweenValueVector4();
+            instance.SetBaseValues(from, to, time, null);
+            instance.AssignMainEvent();
+            return instance;
+        }
+        ///<summary>Interpolates Vector4 value.</summary>
+        public static VTweenValueVector4 value(Vector4 from, Vector4 to, float time, Action<Vector4> callback)
+        {
+            var instance = new VTweenValueVector4();
+            instance.SetBaseValues(from, to, time, callback);
             instance.AssignMainEvent();
             return instance;
         }
