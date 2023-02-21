@@ -1,6 +1,9 @@
 # VTween
  Fully featured tweening library for Unity3D with only just 30kb of size. Inspired by the legendary LeanTween.  
  
+ <br>**Requirement**</br>  
+ Unity3D 2022.2.x and above.  
+ 
  <br>**Installation**</br>
 Download the .zip and unpack it to your Assets folder in your project.  
 
