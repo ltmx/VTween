@@ -409,7 +409,25 @@ namespace VTWeen
             instance.Init();
             return instance;
         }
+        #endregion
 
+        #region Alpha
+        ///<summary>Interpolates the alpha/opacity value of a CanvasGroup or VisualElement.</summary>
+        public static VTweenAlpha alpha(CanvasGroup canvasGroup, float from, float to, float time)
+        {
+            var instance = new VTweenAlpha();
+            instance.SetBaseValues(canvasGroup, null, from, to, time);
+            instance.AssignMainEvent();
+            return instance;
+        }
+        ///<summary>Interpolates the alpha/opacity value of a CanvasGroup or VisualElement.</summary>
+        public static VTweenAlpha alpha(VisualElement visualElement, float from, float to, float time)
+        {
+            var instance = new VTweenAlpha();
+            instance.SetBaseValues(null, visualElement, from, to, time);
+            instance.AssignMainEvent();
+            return instance;
+        }
         #endregion
 
         #region  Utility

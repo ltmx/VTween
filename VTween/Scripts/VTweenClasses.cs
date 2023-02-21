@@ -722,6 +722,80 @@ namespace VTWeen
             return this;
         }
     }
+    ///<summary>Sets alpha value of a Canvas or the opacity of a VisualeElement.</summary>
+    public class VTweenAlpha : VClass<VTweenAlpha>
+    {
+        private CanvasGroup canvyg;
+        private VisualElement visualElement;
+        private float fromValue;
+        private float toValue;
+
+        ///<summary>Sets base values that aren't common properties of the base class.</summary>
+        public void SetBaseValues(CanvasGroup canvas, VisualElement visualelement, float from, float to, float time)
+        {
+            canvyg = canvas;
+            visualElement = visualelement;
+            ivcommon.duration = time;
+
+            if(from < 0)
+                from = 0;
+            
+            if(to > 1)
+                to = 1;
+
+            fromValue = from;
+            toValue = to;
+        }
+        ///<summary>Resets properties shuffle the destination</summary>
+        public override void LoopReset()
+        {
+            if (!ivcommon.pingpong)
+            {
+                if (canvyg != null)
+                {
+                    canvyg.alpha = fromValue;
+                }
+                else if (visualElement != null)
+                {
+                    visualElement.style.opacity = fromValue;
+                }
+            }
+            else
+            {
+                var dest = toValue;
+                toValue = fromValue;
+                fromValue = dest;
+            }
+        }
+        ///<summary>Main even assignment of Exec method, refers to base class.</summary>
+        public void AssignMainEvent()
+        {
+            Action callback = () =>
+            {
+                if (canvyg != null)
+                {
+                    canvyg.alpha = ivcommon.RunEaseTimeFloat(fromValue, toValue);
+                }
+                else if (visualElement != null)
+                {
+                    visualElement.style.opacity = ivcommon.RunEaseTimeFloat(fromValue, toValue);
+                }
+            };
+
+            var t = new EventVRegister { callback = callback, id = 1 };
+            ivcommon.AddRegister(ref t);
+            VTweenManager.InsertToActiveTween(this);
+        }
+        ///<summary>Repositioning initial position of object.</summary>
+        public VTweenAlpha setFrom(float alphaValue)
+        {
+            if(alphaValue < 0)
+                alphaValue = 0;
+            
+            fromValue = alphaValue;
+            return this;
+        }
+    }
     //TODO Needs more testing!
     ///<summary>Frame-byframe animation of array of images for both legacy and UIElements.Image.</summary>
     public class VTweenAnimation : VClass<VTweenAnimation>
