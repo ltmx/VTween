@@ -34,7 +34,6 @@ namespace VTWeen
             var instance = new VTweenMove();
             var trans = gameObject.transform;
             instance.SetBaseValues(trans, null, to, trans.position, duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Moves object to target position.</summary>
@@ -44,7 +43,6 @@ namespace VTWeen
             var instance = new VTweenMove();
             var trans = transform;
             instance.SetBaseValues(trans, null, to, trans.position, duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Moves object to target position.</summary>
@@ -54,7 +52,6 @@ namespace VTWeen
             var instance = new VTweenMove();
             var trans = transform;
             instance.SetBaseValues(trans, null, to.position, trans.position, duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Moves object based on target's transform.</summary>
@@ -63,7 +60,6 @@ namespace VTWeen
             var instance = new VTweenMove();
             var trans = gameObject.transform;
             instance.SetBaseValues(trans, null, to.position, trans.position, duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Moves object based on target's ITransform on VisualElement.</summary>
@@ -71,7 +67,6 @@ namespace VTWeen
         {
             var instance = new VTweenMove();
             instance.SetBaseValues(null, visualElement.style, to, visualElement.transform.position, duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Moves object localSpace.</summary>
@@ -81,7 +76,6 @@ namespace VTWeen
             var trans = gameObject.transform;
             instance.ivcommon.isLocal = true;
             instance.SetBaseValues(trans, null, to, trans.localPosition, duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Moves object based on target's localTransform.</summary>
@@ -91,7 +85,6 @@ namespace VTWeen
             var trans = gameObject.transform;
             instance.ivcommon.isLocal = true;
             instance.SetBaseValues(trans, null, to.localPosition, trans.localPosition, duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Moves object based on target's localTransform.</summary>
@@ -101,7 +94,6 @@ namespace VTWeen
             var trans = transform;
             instance.ivcommon.isLocal = true;
             instance.SetBaseValues(trans, null, to.localPosition, trans.localPosition, duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Moves object based on object's X axis.</summary>
@@ -110,7 +102,6 @@ namespace VTWeen
             var instance = new VTweenMove();
             var trans = gameObject.transform;
             instance.SetBaseValues(trans, null, new Vector3(to, trans.position.y, trans.position.z), trans.position, duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Moves object based on object's X axis.</summary>
@@ -119,7 +110,6 @@ namespace VTWeen
             var instance = new VTweenMove();
             var trans = transform;
             instance.SetBaseValues(trans, null, new Vector3(to, trans.position.y, trans.position.z), trans.position, duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Moves object based on object's X axis.</summary>
@@ -128,7 +118,6 @@ namespace VTWeen
             var instance = new VTweenMove();
             var trans = visualElement.transform;
             instance.SetBaseValues(null, visualElement.style, new Vector3(to, trans.position.y, trans.position.z), trans.position, duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Moves object based on object's X axis localSpace.</summary>
@@ -138,7 +127,6 @@ namespace VTWeen
             var trans = gameObject.transform;
             instance.ivcommon.isLocal = true;
             instance.SetBaseValues(trans, null, new Vector3(to, trans.localPosition.y, trans.localPosition.z), trans.localPosition, duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Moves object based on object's X axis localSpace.</summary>
@@ -148,7 +136,6 @@ namespace VTWeen
             var trans = transform;
             instance.ivcommon.isLocal = true;
             instance.SetBaseValues(trans, null, new Vector3(to, trans.localPosition.y, trans.localPosition.z), trans.localPosition, duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Moves object based on object's Y axis.</summary>
@@ -157,7 +144,6 @@ namespace VTWeen
             var instance = new VTweenMove();
             var trans = gameObject.transform;
             instance.SetBaseValues(trans, null, new Vector3(trans.position.x, to, trans.position.z), trans.position, duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Moves object based on object's Y axis.</summary>
@@ -166,7 +152,6 @@ namespace VTWeen
             var instance = new VTweenMove();
             var trans = transform;
             instance.SetBaseValues(trans, null, new Vector3(trans.position.x, to, trans.position.z), trans.position, duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Moves object based on object's Y axis of a VisualElement.</summary>
@@ -175,7 +160,6 @@ namespace VTWeen
             var instance = new VTweenMove();
             var trans = visualElement.transform;
             instance.SetBaseValues(null, visualElement.style, new Vector3(trans.position.x, to, trans.position.z), trans.position, duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Moves object based on object's Y axis localSpace.</summary>
@@ -185,7 +169,6 @@ namespace VTWeen
             var trans = gameObject.transform;
             instance.ivcommon.isLocal = true;
             instance.SetBaseValues(trans, null, new Vector3(trans.localPosition.x, to, trans.localPosition.z), trans.localPosition, duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Moves object based on object's Y axis localSpace.</summary>
@@ -195,7 +178,6 @@ namespace VTWeen
             var trans = transform;
             instance.ivcommon.isLocal = true;
             instance.SetBaseValues(trans, null, new Vector3(trans.localPosition.x, to, trans.localPosition.z), trans.localPosition, duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Moves object based on object's Z axis.</summary>
@@ -204,7 +186,6 @@ namespace VTWeen
             var instance = new VTweenMove();
             var trans = gameObject.transform;
             instance.SetBaseValues(trans, null, new Vector3(trans.position.x, trans.position.y, to), trans.position, duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Moves object based on object's Z axis.</summary>
@@ -213,7 +194,6 @@ namespace VTWeen
             var instance = new VTweenMove();
             var trans = transform;
             instance.SetBaseValues(trans, null, new Vector3(trans.position.x, trans.position.y, to), trans.position, duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Moves object based on object's local Z axis.</summary>
@@ -223,7 +203,6 @@ namespace VTWeen
             var trans = gameObject.transform;
             instance.ivcommon.isLocal = true;
             instance.SetBaseValues(trans, null, new Vector3(trans.localPosition.x, trans.localPosition.y, to), trans.localPosition, duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Moves object based on object's local Z axis.</summary>
@@ -233,7 +212,6 @@ namespace VTWeen
             var trans = transform;
             instance.ivcommon.isLocal = true;
             instance.SetBaseValues(trans, null, new Vector3(trans.localPosition.x, trans.localPosition.y, to), trans.localPosition, duration);
-            instance.AssignMainEvent();
             return instance;
         }
         #endregion
@@ -245,7 +223,6 @@ namespace VTWeen
             var instance = new VTweenRotate();
             var trans = gameObject.transform;
             instance.SetBaseValues(trans, null, angle, direction, duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Rotates VisualElement based on angle value.</summary>
@@ -254,7 +231,6 @@ namespace VTWeen
             var instance = new VTweenRotate();
             var trans = visualObject.transform;
             instance.SetBaseValues(null, trans, angle, direction, duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Rotates object based on angle value.</summary>
@@ -264,7 +240,6 @@ namespace VTWeen
             var trans = gameObject.transform;
             instance.ivcommon.isLocal = true;
             instance.SetBaseValues(trans, null, to, direction, duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Scales object based on Vector3.</summary>
@@ -273,7 +248,6 @@ namespace VTWeen
             var instance = new VTweenScale();
             var trans = gameObject.transform;
             instance.SetBaseValues(trans, null, targetScale, trans.localScale, duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Scales object based on Vector3.</summary>
@@ -282,7 +256,6 @@ namespace VTWeen
             var instance = new VTweenScale();
             var trans = gameObject.transform;
             instance.SetBaseValues(trans, null, targetTransform.localScale, trans.localScale, duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Scales object based on Vector3.</summary>
@@ -290,7 +263,6 @@ namespace VTWeen
         {
             var instance = new VTweenScale();
             instance.SetBaseValues(null, visualElement.style, scaleValue, visualElement.style.scale.value.value, duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Scales object based on X axis.</summary>
@@ -299,7 +271,6 @@ namespace VTWeen
             var instance = new VTweenScale();
             var trans = gameObject.transform;
             instance.SetBaseValues(trans, null, targetTransform.localScale, new Vector3(targetTransform.localScale.x, trans.localScale.y, trans.localScale.z), duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Scales object based on Y axis.</summary>
@@ -308,7 +279,6 @@ namespace VTWeen
             var instance = new VTweenScale();
             var trans = gameObject.transform;
             instance.SetBaseValues(trans, null, targetTransform.localScale, new Vector3(trans.localScale.x, targetTransform.localScale.y, trans.localScale.z), duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Scales object based on Z axis.</summary>
@@ -317,7 +287,6 @@ namespace VTWeen
             var instance = new VTweenScale();
             var trans = gameObject.transform;
             instance.SetBaseValues(trans, null, targetTransform.localScale, new Vector3(trans.localScale.x, trans.localScale.y, targetTransform.localScale.z), duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Scales object based on Vector3.</summary>
@@ -326,7 +295,6 @@ namespace VTWeen
             var instance = new VTweenScale();
             var trans = transform;
             instance.SetBaseValues(trans, null, targetTransform.localScale, trans.localScale, duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Scales object based on X axis.</summary>
@@ -335,7 +303,6 @@ namespace VTWeen
             var instance = new VTweenScale();
             var trans = transform;
             instance.SetBaseValues(trans, null, targetTransform.localScale, new Vector3(trans.localScale.x, targetTransform.localScale.y, targetTransform.localScale.z), duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Scales object based on X axis.</summary>
@@ -344,7 +311,6 @@ namespace VTWeen
             var instance = new VTweenScale();
             var trans = transform;
             instance.SetBaseValues(trans, null, targetTransform.localScale, new Vector3(targetTransform.localScale.x, trans.localScale.y, targetTransform.localScale.z), duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Scales object based on X axis.</summary>
@@ -353,7 +319,6 @@ namespace VTWeen
             var instance = new VTweenScale();
             var trans = transform;
             instance.SetBaseValues(trans, null, targetTransform.localScale, new Vector3(trans.localScale.x, trans.localScale.y, targetTransform.localScale.z), duration);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Scales object based on Vector3.</summary>
@@ -362,7 +327,6 @@ namespace VTWeen
             var instance = new VTweenScale();
             var trans = transform;
             instance.SetBaseValues(trans, null, targetScale, trans.localScale, duration);
-            instance.AssignMainEvent();
             return instance;
         }
         #endregion
@@ -373,7 +337,6 @@ namespace VTWeen
         {
             var instance = new VTweenValueFloat();
             instance.SetBaseValues(from, to, time, null);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Interpolates float value with custom callback.</summary>
@@ -381,23 +344,27 @@ namespace VTWeen
         {
             var instance = new VTweenValueFloat();
             instance.SetBaseValues(from, to, time, callback);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Interpolates Vector3 value with custom callback.</summary>
-        public static VTweenValueVector3 value(Vector3 from, Vector3 to, float time, Action<Vector3>callback)
+        public static VTweenValueVector3 value(Vector3 from, Vector3 to, float time, Action<Vector3> callback)
         {
             var instance = new VTweenValueVector3();
             instance.SetBaseValues(from, to, time, callback);
-            instance.AssignMainEvent();
             return instance;
+        }
+        ///<summary>Interpolates Vector2 value</summary>
+        public static VTweenValueVector2 value(Vector2 from, Vector2 to, float time, Action<Vector2> callback)
+        {
+            var instance = new VTweenValueVector2();
+            instance.SetBaseValues(from, to, time, callback);
+            return instance; 
         }
         ///<summary>Interpolates Vector3 value.</summary>
         public static VTweenValueVector3 value(Vector3 from, Vector3 to, float time)
         {
             var instance = new VTweenValueVector3();
             instance.SetBaseValues(from, to, time, null);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Interpolates Vector4 value.</summary>
@@ -405,7 +372,6 @@ namespace VTWeen
         {
             var instance = new VTweenValueVector4();
             instance.SetBaseValues(from, to, time, null);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Interpolates Vector4 value.</summary>
@@ -413,7 +379,6 @@ namespace VTWeen
         {
             var instance = new VTweenValueVector4();
             instance.SetBaseValues(from, to, time, callback);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Waits certain amounnt of time before executing.</summary>
@@ -432,7 +397,6 @@ namespace VTWeen
         {
             var instance = new VTweenAlpha();
             instance.SetBaseValues(canvasGroup, null, from, to, time);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Interpolates the alpha/opacity value of a CanvasGroup or VisualElement.</summary>
@@ -440,7 +404,6 @@ namespace VTWeen
         {
             var instance = new VTweenAlpha();
             instance.SetBaseValues(null, visualElement, from, to, time);
-            instance.AssignMainEvent();
             return instance;
         }
         #endregion
@@ -451,7 +414,6 @@ namespace VTWeen
         {
             var instance = new VTweenColor();
             instance.SetBaseValues(image, null, image.color, to, time);
-            instance.AssignMainEvent();
             return instance;
         }
         ///<summary>Interpolates two colors.</summary>
@@ -459,7 +421,6 @@ namespace VTWeen
         {
             var instance = new VTweenColor();
             instance.SetBaseValues(null, visualElement, visualElement.style.backgroundColor.value, to, time);
-            instance.AssignMainEvent();
             return instance;
         }
         #endregion
@@ -469,10 +430,34 @@ namespace VTWeen
         {
             var instance = new VTweenFollow();
             instance.SetBaseValues(gameObject.transform, target, smoothness, time);
-            instance.AssignMainEvent();
             return instance;
         }
         #endregion
+
+        #region Shader Properties
+        ///<summary>Interpolates float value.</summary>
+        public static VTweenShaderFloat shaderFloat(Material material, string referenceName, float from, float to, float time)
+        {
+            var instance = new VTweenShaderFloat();
+            instance.SetBaseValues(material, referenceName, from, to, time);
+            return instance;
+        }
+        ///<summary>Interpolates Vector2 value.</summary>
+        public static VTweenShaderVector2 shaderVector2(Material material, string referenceName, Vector2 from, Vector2 to, float time)
+        {
+            var instance = new VTweenShaderVector2();
+            instance.SetBaseValues(material, referenceName, from, to, time);
+            return instance;
+        }
+        ///<summary>Interpolates Vector3 value.</summary>
+        public static VTweenShaderVector3 shaderVector3(Material material, string referenceName, Vector3 from, Vector3 to, float time)
+        {
+            var instance = new VTweenShaderVector3();
+            instance.SetBaseValues(material, referenceName, from, to, time);
+            return instance;
+        }
+        #endregion
+
         #region  Utility
         ///<summary>Frame-by-frame animation based on array legacy UI Image.</summary>
         public static VTweenAnimation animation(UnityEngine.UI.Image[] legacyImages, float time, int fps = 12)

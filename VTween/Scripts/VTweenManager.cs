@@ -47,10 +47,11 @@ namespace VTWeen
                 return;
 
             VWorkerIsRunning = true;
+            var tsk = Task.Yield();
 
             while (activeTweens.Count > 0)
             {
-                await Task.Yield();
+                await tsk;
 
                 for (int i = activeTweens.Count; i-- > 0;)
                 {

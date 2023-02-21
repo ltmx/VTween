@@ -46,8 +46,12 @@ namespace VTWeen
 
             }, id = 1 };
 
-            ivcommon.AddRegister(ref t);
+            ivcommon.AddRegister(t);
             VTweenManager.InsertToActiveTween(this);
         }
+    }
+    public class VTweenQueue
+    {
+
     }
 }

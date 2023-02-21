@@ -19,11 +19,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace VTWeen
 {
     public class VTweenMono : MonoBehaviour
     {
+        public static bool VTweenWorkerIsRunning = false;
         void Start()
         {
             DontDestroyOnLoad(this);
@@ -36,6 +39,34 @@ namespace VTWeen
         void OnApplicationQuit()
         {
             VTweenManager.AbortVTweenWorker();
+        }
+
+        public void StartWorker()
+        {
+            if(VTweenWorkerIsRunning)
+                return;
+
+            StartCoroutine(VTweenPoolWorker());
+        }
+        public void StopWorker()
+        {
+            StopCoroutine(VTweenPoolWorker());
+        }
+        private IEnumerator VTweenPoolWorker()
+        {
+            VTweenWorkerIsRunning = true;
+
+            while (VTweenManager.activeTweens.Count > 0)
+            {
+                yield return null;
+
+                for (int i = VTweenManager.activeTweens.Count; i-- > 0;)
+                {
+                    VTweenManager.activeTweens[i].ivcommon.Exec();
+                } 
+            }
+
+            VTweenWorkerIsRunning = false;
         }
     }
 }
