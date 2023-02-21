@@ -1,3 +1,22 @@
+/*
+MIT License
+
+Copyright 2023 Stevphanie Ricardo
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this
+software and associated documentation files (the "Software"), to deal in the Software
+without restriction, including without limitation the rights to use, copy, modify,
+merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
 using UnityEngine;
 using System;
 using UnityEngine.UIElements;
@@ -5,7 +24,6 @@ using VTWeen.Extension;
 using System.Collections.Generic;
 
 //Main VTween classes....
-
 namespace VTWeen
 {
     ///<summary>Base class of VTween. Shares common properties.</summary>
@@ -21,17 +39,14 @@ namespace VTWeen
         bool IVCommonBase.isLocal { get; set; }
         bool IVCommonBase.unscaledTime { get; set; }
         bool IVCommonBase.pingpong { get; set; }
-
         float IVCommonBase.duration { get; set; }
         float IVCommonBase.runningTime { get; set; }
         bool IVCommonBase.speedBased { get; set; }
         bool IVCommonBase.oncompleteRepeat { get; set; }
         TweenState IVCommonBase.state { get; set; }
-
         Action IVCommonBase.exec { get; set; }
         Action IVCommonBase.oncomplete { get; set; }
         Action IVCommonBase.softreset { get; set; }
-
         List<EventVRegister> IVCommonBase.registers { get; set; }
 
         ///<summary>Adds/removes invocation of a delegate.</summary>
@@ -68,6 +83,7 @@ namespace VTWeen
             ivcommon.registers = new List<EventVRegister>();
             ivcommon.id = VTweenUtil.VtweenGlobalId++;
         }
+        public virtual void LoopReset(){}
         ///<summary>Executes scaled/unsclade runningTime.</summary>
         private void ExecRunningTime()
         {
@@ -155,7 +171,7 @@ namespace VTWeen
         ///<summary>Cancels the tween, returns to pool.</summary>
         public void Cancel(bool executeOnComplete = false)
         {
-            if(ivcommon.state != TweenState.Tweening)
+            if(ivcommon.state == TweenState.None)
                 return;
 
             if (executeOnComplete)
@@ -261,18 +277,18 @@ namespace VTWeen
         ///<summary>Pauses the tweening.</summary>
         public void Pause()
         {
-            if (ivcommon.state == TweenState.Tweening)
-            {
-                VTweenManager.PoolToPaused(this);
-            }
+            if (ivcommon.state != TweenState.Tweening)
+                return;
+
+            VTweenManager.PoolToPaused(this);
         }
         ///<summary>Resumes paused tween instances, if any.</summary>
         public void Resume()
         {
-            if (ivcommon.state == TweenState.Paused)
-            {
-                VTweenManager.UnPoolPaused(this);
-            }
+            if (ivcommon.state != TweenState.Paused)
+                return;
+            
+            VTweenManager.UnPoolPaused(this);
         }
     }
 
@@ -294,7 +310,7 @@ namespace VTWeen
             ivcommon.duration = time;
         }
         ///<summary>Shuffling the to/from properties.</summary>
-        private void LoopReset()
+        public override void LoopReset()
         {
             if (fromIns != null)
             {
@@ -346,16 +362,10 @@ namespace VTWeen
                 {
                     fromInsUi.position = ivcommon.RunEaseTimeVector3(defaultPosition, destination);
                 }
-                else
-                {
-                    throw new VTweenException("GameObject/Transform can't be null");
-                }
             };
 
             var t = new EventVRegister { callback = callback, id = 1 };
-            var tx = new EventVRegister { callback = LoopReset, id = 3 };
             ivcommon.AddRegister(ref t);
-            ivcommon.AddRegister(ref tx);
             VTweenManager.InsertToActiveTween(this);
         }
         ///<summary>Repositioning initial position of object.</summary>
@@ -387,6 +397,7 @@ namespace VTWeen
                 },
                 id = 1
             };
+
             ivcommon.AddRegister(ref evt);
             return this;
         }
@@ -411,7 +422,7 @@ namespace VTWeen
             direction = type;
         }
         ///<summary>Resets properties shuffle the destination</summary>
-        private void LoopReset()
+        public override void LoopReset()
         {
             if (!ivcommon.isLocal)
                 transform.transform.rotation = currentRotation;
@@ -444,17 +455,24 @@ namespace VTWeen
                         transform.localRotation = Quaternion.AngleAxis(ivcommon.RunEaseTimeFloat(0f, degreeAngle), direction);
                     }
                 }
-                else
-                {
-                    throw new VTweenException("GameObject/Transform can't be null");
-                }
             };
 
             var t = new EventVRegister { callback = callback, id = 1 };
-            var tx = new EventVRegister { callback = LoopReset, id = 3 };
             ivcommon.AddRegister(ref t);
-            ivcommon.AddRegister(ref tx);
             VTweenManager.InsertToActiveTween(this);
+        }
+        ///<summary>Sets target transform to look at while rotating.</summary>
+        public VTweenRotate setLookAt(Transform target, Vector3 direction)
+        {
+            ivcommon.onUpdate(()=>
+            {
+                if(transform != null)
+                {
+                    var relativePos = target.position - transform.position;
+                    transform.rotation = Quaternion.LookRotation(relativePos, direction);
+                }
+            });
+            return this;
         }
         ///<summary>Repositioning initial position of object.</summary>
         public VTweenRotate setFrom(float fromAngle, Vector3 direction)
@@ -493,7 +511,7 @@ namespace VTWeen
             incallback = callbackEvent;
         }
         ///<summary>Resets properties shuffle the destination</summary>
-        private void LoopReset()
+        public override void LoopReset()
         {
             if (!ivcommon.pingpong)
             {
@@ -521,12 +539,9 @@ namespace VTWeen
             };
 
             var t = new EventVRegister { callback = callback, id = 1 };
-            var tx = new EventVRegister { callback = LoopReset, id = 3 };
             ivcommon.AddRegister(ref t);
-            ivcommon.AddRegister(ref tx);
             VTweenManager.InsertToActiveTween(this);
         }
-
         ///<summary>Repositioning initial position of object.</summary>
         public VTweenValueFloat setFrom(float value)
         {
@@ -551,7 +566,7 @@ namespace VTWeen
             incallback = callbackEvent;
         }
         ///<summary>Resets properties shuffle the destination</summary>
-        private void LoopReset()
+        public override void LoopReset()
         {
             if (!ivcommon.pingpong)
             {
@@ -579,9 +594,7 @@ namespace VTWeen
             };
 
             var t = new EventVRegister { callback = callback, id = 1 };
-            var tx = new EventVRegister { callback = LoopReset, id = 3 };
             ivcommon.AddRegister(ref t);
-            ivcommon.AddRegister(ref tx);
             VTweenManager.InsertToActiveTween(this);
         }
         ///<summary>Repositioning initial position of object.</summary>
@@ -609,7 +622,7 @@ namespace VTWeen
             ivcommon.duration = time;
         }
         ///<summary>Resets properties shuffle the destination</summary>
-        private void LoopReset()
+        public override void LoopReset()
         {
             if (!ivcommon.pingpong)
             {
@@ -642,19 +655,12 @@ namespace VTWeen
                 {
                     itransform.scale = ivcommon.RunEaseTimeVector3(defaultScale, targetScale);
                 }
-                else
-                {
-                    throw new VTweenException("GameObject/Transform can't be null");
-                }
             };
 
             var t = new EventVRegister { callback = callback, id = 1 };
-            var tx = new EventVRegister { callback = LoopReset, id = 3 };
             ivcommon.AddRegister(ref t);
-            ivcommon.AddRegister(ref tx);
             VTweenManager.InsertToActiveTween(this);
         }
-
         ///<summary>Repositioning initial position of object.</summary>
         public VTweenScale setFrom(Vector3 fromScale)
         {
@@ -671,16 +677,41 @@ namespace VTWeen
             return this;
         }
     }
-    ///<summary>Interpolates shader values.</summary>
-    public class VTweenShaderProperty : VClass<VTweenShaderProperty>
-    {
 
-    }
-    ///<summary>Follows target object. Custom smoothing can be applied.</summary>
+    ///<summary>Follows target object. Custom dampening can be applied.</summary>
     public class VTweenFollow : VClass<VTweenFollow>
     {
+        private Transform transform;
+        private Transform target;
+        private Vector3 smoothTime;
+        private float speedTime;
 
+        ///<summary>Sets base values that aren't common properties of the base class.</summary>
+        public void SetBaseValues(Transform trans, Transform targetTransform, Vector3 smoothness, float speed)
+        {
+            transform = trans;
+            target = targetTransform;
+            smoothTime = smoothness;
+            speedTime = speed;
+        }
+
+        ///<summary>Main even assignment of Exec method, refers to base class.</summary>
+        public void AssignMainEvent()
+        {
+            Action callback = () =>
+            {
+                if (transform != null)
+                {
+                    transform.position = Vector3.SmoothDamp(transform.position, target.position, ref smoothTime, speedTime);
+                }
+            };
+
+            var t = new EventVRegister { callback = callback, id = 1 };
+            ivcommon.AddRegister(ref t);
+            VTweenManager.InsertToActiveTween(this);
+        }
     }
+
     ///<summary>State of the tweening instance.</summary>
     public enum TweenState
     {
@@ -696,7 +727,6 @@ namespace VTWeen
         public int loopCounter { get; set; }
         public int pingpongCounter { get; set; }
         public Ease easeType { get; set; }
-
         public float duration { get; set; }
         public float runningTime { get; set; }
         public bool speedBased { get; set; }
@@ -705,17 +735,14 @@ namespace VTWeen
         public bool unscaledTime { get; set; }
         public bool pingpong { get; set; }
         public TweenState state { get; set; }
-
         public Action exec { get; set; }
         public Action oncomplete { get; set; }
         public Action softreset { get; set; }
         public List<EventVRegister> registers { get; set; }
-
         public VTweenClass onComplete(Action callback);
         public VTweenClass onUpdate(Action callback);
         public VTweenClass onCompleteRepeat(bool repeatOnComplete);
         public VTweenClass setPingPong(bool state);
-
         public VTweenClass setEase(Ease ease);
         public VTweenClass setSpeed(float speed);
         public VTweenClass setLoop(int loopCount);
@@ -762,6 +789,8 @@ namespace VTWeen
         public T setLoop(int loopCount)
         {
             this.ivcommon.setLoop(loopCount);
+            var tx = new EventVRegister { callback = (this as T).LoopReset, id = 3 };
+            ivcommon.AddRegister(ref tx);
             return this as T;
         }
         ///<summary>Whether it will be affacted by Time.timeScale or not.</summary>
