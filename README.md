@@ -22,6 +22,10 @@
                 //ExecuteLater (Similar to LeanTween.delayedCall)
                 VTween.execLater(5, ()=> {UnityEngine.Debug.Log("Done waiting!");});
                 
+                //Frame-by-frame animation(VTween.animation)
+                Image[] arr = new Image[11];
+                VTween.animation(arr, duration, 60).setDisableOnComplete(true).setLoop(loopCount).setPingPong(true);
+                
 ```
  
  **ToDo:**  
