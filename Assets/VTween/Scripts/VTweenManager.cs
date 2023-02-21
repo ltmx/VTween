@@ -190,11 +190,6 @@ namespace VTWeen.Extension
         {
             return VTweenManager.pausedTweens.ToArray();
         }
-        public static T GetFromPoolSlot<T>() where T : VTweenClass, new()
-        {
-            var instance = new T();
-            return instance;
-        }
         private static bool CheckTypes<T>(VTweenClass targetToCheck) where T : VTweenClass
         {
             return targetToCheck is T;

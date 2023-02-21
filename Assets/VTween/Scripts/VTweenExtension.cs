@@ -23,6 +23,7 @@ using System;
 
 namespace VTWeen
 {
+    ///<summary>Delayed execution. Respects both scaled/unscaled time</summary>
     public class VTweenExecLater : VClass<VTweenExecLater>
     {
         Action callback;

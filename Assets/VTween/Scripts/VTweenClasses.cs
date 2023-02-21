@@ -83,7 +83,7 @@ namespace VTWeen
             ivcommon.registers = new List<EventVRegister>();
             ivcommon.id = VTweenUtil.VtweenGlobalId++;
         }
-        public virtual void LoopReset(){}
+        public virtual void LoopReset() { }
         ///<summary>Executes scaled/unsclade runningTime.</summary>
         private void ExecRunningTime()
         {
@@ -171,7 +171,7 @@ namespace VTWeen
         ///<summary>Cancels the tween, returns to pool.</summary>
         public void Cancel(bool executeOnComplete = false)
         {
-            if(ivcommon.state == TweenState.None)
+            if (ivcommon.state == TweenState.None)
                 return;
 
             if (executeOnComplete)
@@ -287,7 +287,7 @@ namespace VTWeen
         {
             if (ivcommon.state != TweenState.Paused)
                 return;
-            
+
             VTweenManager.UnPoolPaused(this);
         }
     }
@@ -464,9 +464,9 @@ namespace VTWeen
         ///<summary>Sets target transform to look at while rotating.</summary>
         public VTweenRotate setLookAt(Transform target, Vector3 direction)
         {
-            ivcommon.onUpdate(()=>
+            ivcommon.onUpdate(() =>
             {
-                if(transform != null)
+                if (transform != null)
                 {
                     var relativePos = target.position - transform.position;
                     transform.rotation = Quaternion.LookRotation(relativePos, direction);
@@ -677,7 +677,154 @@ namespace VTWeen
             return this;
         }
     }
+    //TODO Needs more testing!
+    ///<summary>Frame-byframe animation of array of images for both legacy and UIElements.Image.</summary>
+    public class VTweenAnimation : VClass<VTweenAnimation>
+    {
+        public UnityEngine.UI.Image[] images;
+        public UnityEngine.UIElements.Image[] uiImages;
+        private int fps = 12;
+        private int runningIndex;
+        private int prevFrame;
 
+        ///<summary>Sets base values that aren't common properties of the base class. Default sets to 12 frame/second. Use setFps for custom frame per second.</summary>
+        public void SetBaseValues(UnityEngine.UI.Image[] legacyimages, UnityEngine.UIElements.Image[] uiimages, int? framePerSecond, float time)
+        {
+            ivcommon.duration = time;
+            images = legacyimages;
+            uiImages = uiimages;
+
+            if (framePerSecond.HasValue)
+            {
+                fps = framePerSecond.Value;
+            }
+
+            ivcommon.duration = time;
+        }
+        ///<summary>Resets properties shuffle the destination</summary>
+        public override void LoopReset()
+        {
+            if (runningIndex == images.Length)
+            {
+                if (!ivcommon.pingpong)
+                {
+                    Array.Reverse(images);
+                }
+                runningIndex = 0;
+            }
+        }
+        private void SetColor(bool show)
+        {
+            if (images != null)
+            {
+                for (int i = 0; i < images.Length; i++)
+                {
+                    if (images[i] == null)
+                        continue;
+
+                    images[i].gameObject.SetActive(show);
+                }
+            }
+            else if (uiImages != null)
+            {
+                for (int i = 0; i < uiImages.Length; i++)
+                {
+                    if (uiImages[i] == null)
+                        continue;
+
+                    if (show)
+                        uiImages[i].style.display = DisplayStyle.Flex;
+                    else
+                        uiImages[i].style.display = DisplayStyle.None;
+                }
+            }
+        }
+        ///<summary>Main even assignment of Exec method, refers to base class.</summary>
+        public void AssignMainEvent()
+        {
+            SetColor(false);
+
+            Action callback = () =>
+            {
+                if ((prevFrame + fps) > Time.frameCount)
+                    return;
+                else
+                {
+                    prevFrame = Time.frameCount;
+                    
+                    if (!ivcommon.unscaledTime)
+                        ivcommon.runningTime += Time.deltaTime;
+                    else
+                        ivcommon.runningTime += Time.unscaledDeltaTime;
+                }
+                    
+
+                if (images != null)
+                {
+                    for (int i = 0; i < images.Length; i++)
+                    {
+                        if (images[i] == null)
+                            continue;
+
+                        if (i == runningIndex)
+                        {
+                            images[i].gameObject.SetActive(true);
+                        }
+                        else
+                        {
+                            images[i].gameObject.SetActive(false);
+                        }
+                    }
+                }
+                else if (uiImages != null)
+                {
+                    for (int i = 0; i < uiImages.Length; i++)
+                    {
+                        if (i == runningIndex)
+                        {
+                            uiImages[i].style.display = DisplayStyle.Flex;
+                        }
+                        else
+                        {
+                            uiImages[i].style.display = DisplayStyle.None;
+                        }
+                    }
+                }
+
+                runningIndex++;
+            };
+
+            var t = new EventVRegister { callback = callback, id = 1 };
+            ivcommon.AddRegister(ref t);
+            VTweenManager.InsertToActiveTween(this);
+        }
+        ///<summary>Sets frame-per-second used for the timing.</summary>
+        public VTweenAnimation setFps(int framePerSecond)
+        {
+            fps = framePerSecond;
+            return this;
+        }
+        public VTweenAnimation setActiveFrame(int index)
+        {
+            runningIndex = index;
+            return this;
+        }
+        public VTweenAnimation setDisableOnComplete(bool state)
+        {
+            if (state)
+            {
+                var act = new Action(() =>
+                {
+                    SetColor(false);
+                });
+
+                var tx = new EventVRegister { callback = act, id = 2 };
+                ivcommon.AddRegister(ref tx);
+            }
+
+            return this;
+        }
+    }
     ///<summary>Follows target object. Custom dampening can be applied.</summary>
     public class VTweenFollow : VClass<VTweenFollow>
     {

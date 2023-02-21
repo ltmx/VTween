@@ -1,7 +1,27 @@
+/*
+MIT License
+
+Copyright 2023 Stevphanie Ricardo
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this
+software and associated documentation files (the "Software"), to deal in the Software
+without restriction, including without limitation the rights to use, copy, modify,
+merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
 using System.Diagnostics;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 namespace VTWeen
 {
@@ -264,6 +284,20 @@ namespace VTWeen
 
                 })).setEase(easeTest).setLoop(loopCount).setPingPong(pingPong);
             }
+        }
+        public void TestAnima()
+        {
+            Image[] arr = new Image[11];
+
+            for(int i = 0; i < arr.Length; i++)
+            {
+                var go = Instantiate(obj, obj.transform.position, obj.transform.rotation);
+                go.transform.SetParent(parent.transform, true);
+                go.GetComponent<Image>().color = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
+                arr[i] = go.GetComponent<Image>();
+            }
+
+            VTween.animation(arr, duration, 60).setDisableOnComplete(true).setLoop(loopCount).setPingPong(true);
         }
         public void TestExecLater()
         {
