@@ -1,10 +1,11 @@
 # VTween
  Fully featured tweening library for Unity3D with only just 30kb of size. Inspired by the legendary LeanTween.  
- <br>**Why another tweening library?**</br>
- Well, LeanTween isn't maintained anymore and it doesn't work with UIToolkit(still the best tweening library in my heart!)  
  
  <br>**Installation**</br>
-Download the .zip and unpack it to your Assets folder in your project.
+Download the .zip and unpack it to your Assets folder in your project.  
+
+ <br>**UIToolkit ~Experimental**</br>
+ UIToolkit should work as long as you're using Unity editor 2022.2.x and above due to style translate api.  
 
  <br>Syntax</br>
 ```
