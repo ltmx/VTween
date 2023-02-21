@@ -430,6 +430,34 @@ namespace VTWeen
         }
         #endregion
 
+        #region Color
+        ///<summary>Interpolates two colors.</summary>
+        public static VTweenColor color(UnityEngine.UI.Image image, Color to, float time)
+        {
+            var instance = new VTweenColor();
+            instance.SetBaseValues(image, null, image.color, to, time);
+            instance.AssignMainEvent();
+            return instance;
+        }
+        ///<summary>Interpolates two colors.</summary>
+        public static VTweenColor color(VisualElement visualElement, Color to, float time)
+        {
+            var instance = new VTweenColor();
+            instance.SetBaseValues(null, visualElement, visualElement.style.backgroundColor.value, to, time);
+            instance.AssignMainEvent();
+            return instance;
+        }
+        #endregion
+        #region Follow
+        ///<summary>Follows gameObject.</summary>
+        public static VTweenFollow follow(GameObject gameObject, Transform target, Vector3 smoothness, float time)
+        {
+            var instance = new VTweenFollow();
+            instance.SetBaseValues(gameObject.transform, target, smoothness, time);
+            instance.AssignMainEvent();
+            return instance;
+        }
+        #endregion
         #region  Utility
         ///<summary>Frame-by-frame animation based on array legacy UI Image.</summary>
         public static VTweenAnimation animation(UnityEngine.UI.Image[] legacyImages, float time, int fps = 12)

@@ -19,6 +19,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //TODO Known issues:
 //1. setDelay will not respect setFrom if setFrom was used.
+//2. This framework wasn't made for setDelay in general. Well, without some duck-taping which will be super ugly
 
 using UnityEngine;
 using System;
@@ -109,6 +110,14 @@ namespace VTWeen
         {
             var tm = ivcommon.runningTime / ivcommon.duration;
             var res = new Vector3(VEasings.ValEase(ivcommon.easeType, startPos.x, endPos.x, tm), VEasings.ValEase(ivcommon.easeType, startPos.y, endPos.y, tm), VEasings.ValEase(ivcommon.easeType, startPos.z, endPos.z, tm));
+            ExecRunningTime();
+            return res;
+        }
+        ///<summary>Vector4 ease impl.</summary>
+        Vector4 IVCommonBase.RunEaseTimeVector4(Vector4 startPos, Vector4 endPos)
+        {
+            var tm = ivcommon.runningTime / ivcommon.duration;
+            var res = new Vector4(VEasings.ValEase(ivcommon.easeType, startPos.x, endPos.x, tm), VEasings.ValEase(ivcommon.easeType, startPos.y, endPos.y, tm), VEasings.ValEase(ivcommon.easeType, startPos.z, endPos.z, tm), VEasings.ValEase(ivcommon.easeType, startPos.w, endPos.w, tm));
             ExecRunningTime();
             return res;
         }
@@ -796,6 +805,66 @@ namespace VTWeen
             return this;
         }
     }
+    ///<summary>Sets alpha value of a Canvas or the opacity of a VisualeElement.</summary>
+    public class VTweenColor : VClass<VTweenColor>
+    {
+        private UnityEngine.UI.Image image;
+        private VisualElement visualElement;
+        private Color fromValue;
+        private Color toValue;
+
+        ///<summary>Sets base values that aren't common properties of the base class.</summary>
+        public void SetBaseValues(UnityEngine.UI.Image uiimage, VisualElement visualelement, Color from, Color to, float time)
+        {
+            image = uiimage;
+            visualElement = visualelement;
+            ivcommon.duration = time;
+            fromValue = from;
+            toValue = to;
+        }
+        ///<summary>Resets properties shuffle the destination</summary>
+        public override void LoopReset()
+        {
+            if (!ivcommon.pingpong)
+            {
+                if (image != null)
+                {
+                    image.color = fromValue;
+                }
+                else if (visualElement != null)
+                {
+                    visualElement.style.backgroundColor = fromValue;
+                }
+            }
+            else
+            {
+                var dest = toValue;
+                toValue = fromValue;
+                fromValue = dest;
+            }
+        }
+        ///<summary>Main even assignment of Exec method, refers to base class.</summary>
+        public void AssignMainEvent()
+        {
+            Action callback = () =>
+            {
+                if (image != null)
+                {
+                    Vector4 vecFrom = fromValue;
+                    Vector4 vecTo = toValue;
+                    image.color = ivcommon.RunEaseTimeVector4(fromValue, toValue);
+                }
+                else if (visualElement != null)
+                {
+                    visualElement.style.backgroundColor = new StyleColor(ivcommon.RunEaseTimeVector4(fromValue, toValue));
+                }
+            };
+
+            var t = new EventVRegister { callback = callback, id = 1 };
+            ivcommon.AddRegister(ref t);
+            VTweenManager.InsertToActiveTween(this);
+        }
+    }
     //TODO Needs more testing!
     ///<summary>Frame-byframe animation of array of images for both legacy and UIElements.Image.</summary>
     public class VTweenAnimation : VClass<VTweenAnimation>
@@ -1016,6 +1085,7 @@ namespace VTWeen
         public void AddRegister(ref EventVRegister register);
         public float RunEaseTimeFloat(float start, float end);
         public Vector3 RunEaseTimeVector3(Vector3 startPos, Vector3 endPos);
+        public Vector4 RunEaseTimeVector4(Vector4 startPos, Vector4 endPos);
         public void Exec();
     }
 
