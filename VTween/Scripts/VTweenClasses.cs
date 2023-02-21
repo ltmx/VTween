@@ -408,26 +408,35 @@ namespace VTWeen
     {
         private float degreeAngle;
         private Transform transform;
+        private ITransform itransform;
         private Quaternion defaultRotation;
         private Vector3 direction;
         private Quaternion currentRotation;
 
         ///<summary>Sets base values that aren't common properties of the base class.</summary>
-        public void SetBaseValues(Transform trans, float angle, Vector3 type, float time)
+        public void SetBaseValues(Transform trans, ITransform itrans, float angle, Vector3 type, float time)
         {
             transform = trans;
             degreeAngle = angle;
             ivcommon.duration = time;
             defaultRotation = trans.rotation;
             direction = type;
+            itransform = itrans;
         }
         ///<summary>Resets properties shuffle the destination</summary>
         public override void LoopReset()
         {
-            if (!ivcommon.isLocal)
-                transform.transform.rotation = currentRotation;
-            else
-                transform.transform.localRotation = currentRotation;
+            if(transform != null)
+            {
+                if (!ivcommon.isLocal)
+                    transform.transform.rotation = currentRotation;
+                else
+                    transform.transform.localRotation = currentRotation;
+            }
+            else if(itransform != null)
+            {
+                itransform.rotation = currentRotation;
+            }
 
             if (ivcommon.pingpong)
             {
@@ -437,10 +446,17 @@ namespace VTWeen
         ///<summary>Main even assignment of Exec method, refers to base class.</summary>
         public void AssignMainEvent()
         {
-            if (!ivcommon.isLocal)
-                currentRotation = transform.rotation * Quaternion.AngleAxis(degreeAngle, direction);
-            else
-                currentRotation = transform.localRotation * Quaternion.AngleAxis(degreeAngle, direction);
+            if(transform != null)
+            {
+                if (!ivcommon.isLocal)
+                    currentRotation = transform.rotation * Quaternion.AngleAxis(degreeAngle, direction);
+                else
+                    currentRotation = transform.localRotation * Quaternion.AngleAxis(degreeAngle, direction);
+            }
+            else if(itransform != null)
+            {
+                currentRotation = itransform.rotation * Quaternion.AngleAxis(degreeAngle, direction);
+            }
 
             Action callback = () =>
             {
@@ -454,6 +470,10 @@ namespace VTWeen
                     {
                         transform.localRotation = Quaternion.AngleAxis(ivcommon.RunEaseTimeFloat(0f, degreeAngle), direction);
                     }
+                }
+                else if(itransform != null)
+                {
+                    itransform.rotation = Quaternion.AngleAxis(ivcommon.RunEaseTimeFloat(0f, degreeAngle), direction);
                 }
             };
 
@@ -470,6 +490,11 @@ namespace VTWeen
                 {
                     var relativePos = target.position - transform.position;
                     transform.rotation = Quaternion.LookRotation(relativePos, direction);
+                }
+                else if(itransform != null)
+                {
+                    var relativePos = target.position - itransform.position;
+                    itransform.rotation = Quaternion.LookRotation(relativePos, direction);
                 }
             });
             return this;
@@ -490,6 +515,11 @@ namespace VTWeen
                     defaultRotation = transform.localRotation;
                 }
             }
+            else if(itransform != null)
+            {
+                defaultRotation = itransform.rotation;
+            }
+
             return this;
         }
     }
@@ -751,7 +781,7 @@ namespace VTWeen
                 else
                 {
                     prevFrame = Time.frameCount;
-                    
+
                     if (!ivcommon.unscaledTime)
                         ivcommon.runningTime += Time.deltaTime;
                     else

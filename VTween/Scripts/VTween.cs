@@ -67,10 +67,10 @@ namespace VTWeen
             return instance;
         }
         ///<summary>Moves object based on target's ITransform on VisualElement.</summary>
-        public static VTweenMove move(ITransform itrans, Vector3 to, float duration)
+        public static VTweenMove move(VisualElement visualElement, Vector3 to, float duration)
         {
             var instance = new VTweenMove();
-            instance.SetBaseValues(null, itrans, to, itrans.position, duration);
+            instance.SetBaseValues(null, visualElement.transform, to, visualElement.transform.position, duration);
             instance.AssignMainEvent();
             return instance;
         }
@@ -123,11 +123,11 @@ namespace VTWeen
             return instance;
         }
         ///<summary>Moves object based on object's X axis.</summary>
-        public static VTweenMove moveX(ITransform itransform, float to, float duration)
+        public static VTweenMove moveX(VisualElement visualElement, float to, float duration)
         {
             var instance = new VTweenMove();
-            var trans = itransform;
-            instance.SetBaseValues(null, itransform, new Vector3(to, trans.position.y, trans.position.z), trans.position, duration);
+            var trans = visualElement.transform;
+            instance.SetBaseValues(null, visualElement.transform, new Vector3(to, trans.position.y, trans.position.z), trans.position, duration);
             instance.AssignMainEvent();
             return instance;
         }
@@ -170,11 +170,11 @@ namespace VTWeen
             return instance;
         }
         ///<summary>Moves object based on object's Y axis of a VisualElement.</summary>
-        public static VTweenMove moveY(ITransform itransform, float to, float duration)
+        public static VTweenMove moveY(VisualElement visualElement, float to, float duration)
         {
             var instance = new VTweenMove();
-            var trans = itransform;
-            instance.SetBaseValues(null, itransform, new Vector3(trans.position.x, to, trans.position.z), trans.position, duration);
+            var trans = visualElement.transform;
+            instance.SetBaseValues(null, visualElement.transform, new Vector3(trans.position.x, to, trans.position.z), trans.position, duration);
             instance.AssignMainEvent();
             return instance;
         }
@@ -217,10 +217,10 @@ namespace VTWeen
             return instance;
         }
         ///<summary>Moves object based on object's Z axis of a VisualElement.</summary>
-        public static VTweenMove moveZ(ITransform transform, float to, float duration)
+        public static VTweenMove moveZ(VisualElement transform, float to, float duration)
         {
             var instance = new VTweenMove();
-            var trans = transform;
+            var trans = transform.transform;
             instance.SetBaseValues(null, trans, new Vector3(trans.position.x, trans.position.y, to), trans.position, duration);
             instance.AssignMainEvent();
             return instance;
@@ -253,7 +253,16 @@ namespace VTWeen
         {
             var instance = new VTweenRotate();
             var trans = gameObject.transform;
-            instance.SetBaseValues(trans, angle, direction, duration);
+            instance.SetBaseValues(trans, null, angle, direction, duration);
+            instance.AssignMainEvent();
+            return instance;
+        }
+        ///<summary>Rotates VisualElement based on angle value.</summary>
+        public static VTweenRotate rotate(VisualElement visualObject, float angle, Vector3 direction, float duration)
+        {
+            var instance = new VTweenRotate();
+            var trans = visualObject.transform;
+            instance.SetBaseValues(null, trans, angle, direction, duration);
             instance.AssignMainEvent();
             return instance;
         }
@@ -263,7 +272,7 @@ namespace VTWeen
             var instance = new VTweenRotate();
             var trans = gameObject.transform;
             instance.ivcommon.isLocal = true;
-            instance.SetBaseValues(trans, to, direction, duration);
+            instance.SetBaseValues(trans, null, to, direction, duration);
             instance.AssignMainEvent();
             return instance;
         }
