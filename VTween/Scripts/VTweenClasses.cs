@@ -17,6 +17,9 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+//TODO Known issues:
+//1. setDelay will not respect setFrom if setFrom was used.
+
 using UnityEngine;
 using System;
 using UnityEngine.UIElements;
@@ -41,6 +44,7 @@ namespace VTWeen
         bool IVCommonBase.pingpong { get; set; }
         float IVCommonBase.duration { get; set; }
         float IVCommonBase.runningTime { get; set; }
+        float? IVCommonBase.delayedTime { get; set; }
         bool IVCommonBase.speedBased { get; set; }
         bool IVCommonBase.oncompleteRepeat { get; set; }
         TweenState IVCommonBase.state { get; set; }
@@ -144,6 +148,17 @@ namespace VTWeen
         {
             if (ivcommon.state != TweenState.Tweening)
                 return;
+
+            //Wait for delayed time to be 0.
+            if(ivcommon.delayedTime.HasValue && ivcommon.delayedTime.Value > 0)
+            {
+                if(!ivcommon.unscaledTime)
+                    ivcommon.delayedTime -= Time.deltaTime;
+                else
+                    ivcommon.delayedTime -= Time.unscaledDeltaTime;
+                
+                return;
+            }
 
             if (ivcommon.runningTime >= ivcommon.duration)
             {
@@ -906,6 +921,7 @@ namespace VTWeen
         public Ease easeType { get; set; }
         public float duration { get; set; }
         public float runningTime { get; set; }
+        public float? delayedTime {get;set;}
         public bool speedBased { get; set; }
         public bool oncompleteRepeat { get; set; }
         public bool isLocal { get; set; }
@@ -953,6 +969,7 @@ namespace VTWeen
         ///<summary>Speed based interpolation rather than time-based</summary>
         public T setSpeed(float speed)
         {
+            if(speed < 0)
             this.ivcommon.setSpeed(speed);
             return this as T;
         }
@@ -986,6 +1003,12 @@ namespace VTWeen
         public T setOnCompleteRepeat(bool state)
         {
             this.ivcommon.oncompleteRepeat = state;
+            return this as T;
+        }
+        public T setDelay(float delayTime)
+        {
+            if(delayTime > 0f)
+            this.ivcommon.delayedTime = delayTime;
             return this as T;
         }
     }
