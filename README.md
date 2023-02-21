@@ -45,6 +45,13 @@ Download the .zip and unpack it to your Assets folder in your project.
                 var target = someTarget.GetComponent<Transform>();
                 VTween.follow(gameObject, target, new Vector3(0f, 0f, 0.1f), 5f);
                 
+                //ShaderProperty //Lerps or interpolates values (apis : shaderFloat, shaderVector2, shaderVector3)
+                var myMaterials = gameObject.GetComponent<Renderer>().materials;
+                VTween.shaderFloat(myMaterials[0], "_myFloatRef", 0, 2, 5); 
+                
+                //Value //Interpolates float value(supported types: float, Vector2, Vector3, Vector4)
+                VTween.value(0f, 5f, 3f, (x)=> {Debug.Log("running value : " + x)});
+                
 ```
  
  **ToDo:**  
