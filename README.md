@@ -70,9 +70,9 @@ UIToolkit should work as long as you're using Unity editor 2022.2.x and above du
 ```
  
  **ToDo:**  
- - CustomYieldInstruction. Currently uses it's own timing. This the highest priority!  
- - Port more LeanTween apis.    
- - Support for UIToolkit is on the way. 
+ - CustomYieldInstruction. Currently uses it's own timing.  
+ - Port more LeanTween apis.
+ - Only 70% UIToolkit implementation completed. 
 
 https://user-images.githubusercontent.com/64100867/220118744-85f4dee1-a35b-4772-ae41-83688e9b810a.mp4
 
