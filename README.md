@@ -15,6 +15,16 @@ Download the .zip and unpack it to your Assets folder in your project.
  <br>**UIToolkit ~Experimental**</br>
 UIToolkit should work as long as you're using Unity editor 2022.2.x and above due to style translate api.  
 
+<br>**Optimization**</br>
+By default the pooled object is set to 10 instances. For heavy usages we can set this to as much as we want BUT you should be careful, changing it to a bigger pool when not used will allocate tons of memory, so use it wisely.  
+```
+  //Changes the max number of object pooling and. Returns boolean
+  //Note: If pools are in use, it will return false. Make sure all tweens already finished before resizing the pool. 
+  
+  VTween.FlushPools(15);
+```
+
+
  <br>Syntax</br>
 ```
   //Move
