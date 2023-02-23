@@ -3,7 +3,7 @@
  
  <br>Features : </br>
 Object Pooling.  
-Close to zero allocation.(it's magic!)  
+Low allocation.  
 Blazingly fast.
 
  <br>**Requirement**</br>
