@@ -31,7 +31,7 @@ namespace VTWeen
         public static VTweenMove move(GameObject gameObject, Vector3 to, float duration)
         {
             //return new VTweenMove(gameObject.transform, null, to, duration);// Non pooling solution
-            var instance = new VTweenMove();
+            var instance = VExtension.GetInstance<VTweenMove>(gameObject.GetInstanceID());
             var trans = gameObject.transform;
             instance.SetBaseValues(trans, null, to, trans.position, duration);
             return instance;
@@ -39,8 +39,7 @@ namespace VTWeen
         ///<summary>Moves object to target position.</summary>
         public static VTweenMove move(Transform transform, Vector3 to, float duration)
         {
-            //return new VTweenMove(gameObject.transform, null, to, duration);// Non pooling solution
-            var instance = new VTweenMove();
+            var instance = VExtension.GetInstance<VTweenMove>(transform.gameObject.GetInstanceID());
             var trans = transform;
             instance.SetBaseValues(trans, null, to, trans.position, duration);
             return instance;
@@ -48,8 +47,7 @@ namespace VTWeen
         ///<summary>Moves object to target position.</summary>
         public static VTweenMove move(Transform transform, Transform to, float duration)
         {
-            //return new VTweenMove(gameObject.transform, null, to, duration);// Non pooling solution
-            var instance = new VTweenMove();
+            var instance = VExtension.GetInstance<VTweenMove>(transform.gameObject.GetInstanceID());
             var trans = transform;
             instance.SetBaseValues(trans, null, to.position, trans.position, duration);
             return instance;
@@ -57,7 +55,7 @@ namespace VTWeen
         ///<summary>Moves object based on target's transform.</summary>
         public static VTweenMove move(GameObject gameObject, Transform to, float duration)
         {
-            var instance = new VTweenMove();
+            var instance = VExtension.GetInstance<VTweenMove>(gameObject.GetInstanceID());
             var trans = gameObject.transform;
             instance.SetBaseValues(trans, null, to.position, trans.position, duration);
             return instance;
@@ -65,14 +63,14 @@ namespace VTWeen
         ///<summary>Moves object based on target's ITransform on VisualElement.</summary>
         public static VTweenMove move(VisualElement visualElement, Vector3 to, float duration)
         {
-            var instance = new VTweenMove();
+            var instance = VExtension.GetInstance<VTweenMove>(visualElement.GetHashCode());
             instance.SetBaseValues(null, visualElement.style, to, visualElement.transform.position, duration);
             return instance;
         }
         ///<summary>Moves object localSpace.</summary>
         public static VTweenMove moveLocal(GameObject gameObject, Vector3 to, float duration)
         {
-            var instance = new VTweenMove();
+            var instance = VExtension.GetInstance<VTweenMove>(gameObject.GetInstanceID());
             var trans = gameObject.transform;
             instance.ivcommon.isLocal = true;
             instance.SetBaseValues(trans, null, to, trans.localPosition, duration);
@@ -81,7 +79,7 @@ namespace VTWeen
         ///<summary>Moves object based on target's localTransform.</summary>
         public static VTweenMove moveLocal(GameObject gameObject, Transform to, float duration)
         {
-            var instance = new VTweenMove();
+            var instance = VExtension.GetInstance<VTweenMove>(gameObject.GetInstanceID());
             var trans = gameObject.transform;
             instance.ivcommon.isLocal = true;
             instance.SetBaseValues(trans, null, to.localPosition, trans.localPosition, duration);
@@ -90,7 +88,7 @@ namespace VTWeen
         ///<summary>Moves object based on target's localTransform.</summary>
         public static VTweenMove moveLocal(Transform transform, Transform to, float duration)
         {
-            var instance = new VTweenMove();
+            var instance = VExtension.GetInstance<VTweenMove>(transform.gameObject.GetInstanceID());
             var trans = transform;
             instance.ivcommon.isLocal = true;
             instance.SetBaseValues(trans, null, to.localPosition, trans.localPosition, duration);
@@ -99,7 +97,7 @@ namespace VTWeen
         ///<summary>Moves object based on object's X axis.</summary>
         public static VTweenMove moveX(GameObject gameObject, float to, float duration)
         {
-            var instance = new VTweenMove();
+            var instance = VExtension.GetInstance<VTweenMove>(gameObject.GetInstanceID());
             var trans = gameObject.transform;
             instance.SetBaseValues(trans, null, new Vector3(to, trans.position.y, trans.position.z), trans.position, duration);
             return instance;
@@ -107,7 +105,7 @@ namespace VTWeen
         ///<summary>Moves object based on object's X axis.</summary>
         public static VTweenMove moveX(Transform transform, float to, float duration)
         {
-            var instance = new VTweenMove();
+            var instance = VExtension.GetInstance<VTweenMove>(transform.gameObject.GetInstanceID());
             var trans = transform;
             instance.SetBaseValues(trans, null, new Vector3(to, trans.position.y, trans.position.z), trans.position, duration);
             return instance;
@@ -115,7 +113,7 @@ namespace VTWeen
         ///<summary>Moves object based on object's X axis.</summary>
         public static VTweenMove moveX(VisualElement visualElement, float to, float duration)
         {
-            var instance = new VTweenMove();
+            var instance = VExtension.GetInstance<VTweenMove>(visualElement.GetHashCode());
             var trans = visualElement.transform;
             instance.SetBaseValues(null, visualElement.style, new Vector3(to, trans.position.y, trans.position.z), trans.position, duration);
             return instance;
@@ -123,7 +121,7 @@ namespace VTWeen
         ///<summary>Moves object based on object's X axis localSpace.</summary>
         public static VTweenMove moveLocalX(GameObject gameObject, float to, float duration)
         {
-            var instance = new VTweenMove();
+            var instance = VExtension.GetInstance<VTweenMove>(gameObject.GetInstanceID());
             var trans = gameObject.transform;
             instance.ivcommon.isLocal = true;
             instance.SetBaseValues(trans, null, new Vector3(to, trans.localPosition.y, trans.localPosition.z), trans.localPosition, duration);
@@ -141,7 +139,7 @@ namespace VTWeen
         ///<summary>Moves object based on object's Y axis.</summary>
         public static VTweenMove moveY(GameObject gameObject, float to, float duration)
         {
-            var instance = new VTweenMove();
+            var instance = VExtension.GetInstance<VTweenMove>(gameObject.GetInstanceID());
             var trans = gameObject.transform;
             instance.SetBaseValues(trans, null, new Vector3(trans.position.x, to, trans.position.z), trans.position, duration);
             return instance;
@@ -149,7 +147,7 @@ namespace VTWeen
         ///<summary>Moves object based on object's Y axis.</summary>
         public static VTweenMove moveY(Transform transform, float to, float duration)
         {
-            var instance = new VTweenMove();
+            var instance = VExtension.GetInstance<VTweenMove>(transform.gameObject.GetInstanceID());
             var trans = transform;
             instance.SetBaseValues(trans, null, new Vector3(trans.position.x, to, trans.position.z), trans.position, duration);
             return instance;
@@ -157,7 +155,7 @@ namespace VTWeen
         ///<summary>Moves object based on object's Y axis of a VisualElement.</summary>
         public static VTweenMove moveY(VisualElement visualElement, float to, float duration)
         {
-            var instance = new VTweenMove();
+            var instance = VExtension.GetInstance<VTweenMove>(visualElement.GetHashCode());
             var trans = visualElement.transform;
             instance.SetBaseValues(null, visualElement.style, new Vector3(trans.position.x, to, trans.position.z), trans.position, duration);
             return instance;
@@ -165,7 +163,7 @@ namespace VTWeen
         ///<summary>Moves object based on object's Y axis localSpace.</summary>
         public static VTweenMove moveLocalY(GameObject gameObject, float to, float duration)
         {
-            var instance = new VTweenMove();
+            var instance = VExtension.GetInstance<VTweenMove>(gameObject.GetInstanceID());
             var trans = gameObject.transform;
             instance.ivcommon.isLocal = true;
             instance.SetBaseValues(trans, null, new Vector3(trans.localPosition.x, to, trans.localPosition.z), trans.localPosition, duration);
@@ -174,7 +172,7 @@ namespace VTWeen
         ///<summary>Moves object based on object's Y axis localSpace.</summary>
         public static VTweenMove moveLocalY(Transform transform, float to, float duration)
         {
-            var instance = new VTweenMove();
+            var instance = VExtension.GetInstance<VTweenMove>(transform.gameObject.GetInstanceID());
             var trans = transform;
             instance.ivcommon.isLocal = true;
             instance.SetBaseValues(trans, null, new Vector3(trans.localPosition.x, to, trans.localPosition.z), trans.localPosition, duration);
@@ -183,7 +181,7 @@ namespace VTWeen
         ///<summary>Moves object based on object's Z axis.</summary>
         public static VTweenMove moveZ(GameObject gameObject, float to, float duration)
         {
-            var instance = new VTweenMove();
+            var instance = VExtension.GetInstance<VTweenMove>(gameObject.GetInstanceID());
             var trans = gameObject.transform;
             instance.SetBaseValues(trans, null, new Vector3(trans.position.x, trans.position.y, to), trans.position, duration);
             return instance;
@@ -191,7 +189,7 @@ namespace VTWeen
         ///<summary>Moves object based on object's Z axis.</summary>
         public static VTweenMove moveZ(Transform transform, float to, float duration)
         {
-            var instance = new VTweenMove();
+            var instance = VExtension.GetInstance<VTweenMove>(transform.gameObject.GetInstanceID());
             var trans = transform;
             instance.SetBaseValues(trans, null, new Vector3(trans.position.x, trans.position.y, to), trans.position, duration);
             return instance;
@@ -199,7 +197,7 @@ namespace VTWeen
         ///<summary>Moves object based on object's local Z axis.</summary>
         public static VTweenMove moveLocalZ(GameObject gameObject, float to, float duration)
         {
-            var instance = new VTweenMove();
+            var instance = VExtension.GetInstance<VTweenMove>(gameObject.GetInstanceID());
             var trans = gameObject.transform;
             instance.ivcommon.isLocal = true;
             instance.SetBaseValues(trans, null, new Vector3(trans.localPosition.x, trans.localPosition.y, to), trans.localPosition, duration);
@@ -208,7 +206,7 @@ namespace VTWeen
         ///<summary>Moves object based on object's local Z axis.</summary>
         public static VTweenMove moveLocalZ(Transform transform, float to, float duration)
         {
-            var instance = new VTweenMove();
+            var instance = VExtension.GetInstance<VTweenMove>(transform.gameObject.GetInstanceID());
             var trans = transform;
             instance.ivcommon.isLocal = true;
             instance.SetBaseValues(trans, null, new Vector3(trans.localPosition.x, trans.localPosition.y, to), trans.localPosition, duration);
@@ -449,6 +447,12 @@ namespace VTWeen
             instance.SetBaseValues(material, referenceName, from, to, time);
             return instance;
         }
+        public static VTweenShaderInt shaderInt(Material material, string referenceName, int from, int to, float time)
+        {
+            var instance = new VTweenShaderInt();
+            instance.SetBaseValues(material, referenceName, from, to, time);
+            return instance;
+        }
         ///<summary>Interpolates Vector3 value.</summary>
         public static VTweenShaderVector3 shaderVector3(Material material, string referenceName, Vector3 from, Vector3 to, float time)
         {
@@ -459,6 +463,8 @@ namespace VTWeen
         #endregion
 
         #region  Utility
+        public static VTweenQueue queue{get{return new VTweenQueue();}}
+
         ///<summary>Frame-by-frame animation based on array legacy UI Image.</summary>
         public static VTweenAnimation animation(UnityEngine.UI.Image[] legacyImages, float time, int fps = 12)
         {
@@ -525,6 +531,16 @@ namespace VTWeen
         {
             VExtension.Cancel(null, true);
         }
+        ///<summary>Cancels VTween instance.</summary>
+        public static void Cancel(GameObject gameObject, bool onComplete)
+        {
+            VExtension.Cancel(gameObject.GetInstanceID(), onComplete);
+        }
+        ///<summary>Cancels VTween instance.</summary>
+        public static void Cancel(VisualElement visualElement, bool onComplete)
+        {
+            VExtension.Cancel(visualElement.GetHashCode(), onComplete);
+        }
         ///<summary>Cancel single instance of active tween.</summary>
         public static void Cancel(VTweenClass vtween, bool executeOnComplete = false)
         {
@@ -550,7 +566,7 @@ namespace VTWeen
             {
                 var val = VTweenManager.activeTweens[i];
                 
-                if(val != null && val.ivcommon.id == customId)
+                if(val  is object && val.ivcommon.id == customId)
                     return true;
             }
 

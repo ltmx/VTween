@@ -27,6 +27,7 @@ namespace VTWeen
         static void OnRuntimeMethodLoad()
         {
             AttachVComponent();
+            VTweenManager.InitPool(10);
         } 
 
         private static void AttachVComponent()

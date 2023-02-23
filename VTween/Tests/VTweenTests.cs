@@ -68,7 +68,7 @@ namespace VTWeen
 
         public void TestMoveSingle()
         {
-            if(obj != null)
+            if(obj  is object)
             {
                 var t = new Stopwatch();
 
@@ -88,7 +88,7 @@ namespace VTWeen
         }
         public void TestMoveToTarget()
         {
-            if(obj != null)
+            if(obj  is object)
             {
                 obj.transform.position = defaultPos;
                 var t = new Stopwatch();
@@ -111,7 +111,7 @@ namespace VTWeen
         }
         public void TestRotate()
         {
-            if(obj != null)
+            if(obj  is object)
             {
                 Vector3 vecDir = Vector3.left;
 
@@ -157,7 +157,7 @@ namespace VTWeen
         }
         public void TestScale()
         {
-            if(obj != null)
+            if(obj  is object)
             {
                 obj.transform.localScale = defaultScale;
                 var t = new Stopwatch();
@@ -179,7 +179,7 @@ namespace VTWeen
         }
         public void TestMoveFromTarget()
         {
-            if(obj != null)
+            if(obj  is object)
             {
                 obj.transform.position = defaultPos;
                 var t = new Stopwatch();
@@ -198,7 +198,27 @@ namespace VTWeen
                 }).setEase(easeTest).setLoop(loopCount).setPingPong(pingPong);
             }
         }
+        public void TestDelayedMoveFromTarget()
+        {
+            if(obj  is object)
+            {
+                obj.transform.position = defaultPos;
+                var t = new Stopwatch();
 
+                if(enableStopwatch)
+                t.Start();
+
+                obj.transform.SetParent(parent.transform, false);
+                VTween.move(obj, target, duration).setFrom(fromTarget.position).setOnComplete(()=>
+                {
+                    if(enableStopwatch)
+                    {
+                        UnityEngine.Debug.Log(t.Elapsed.TotalSeconds);
+                        t.Stop();
+                    }
+                }).setEase(easeTest).setLoop(loopCount).setPingPong(pingPong).setDelay(3);
+            }
+        }
         public void GetActiveTweenCount()
         {
             textVal.SetText(VTween.ActiveTweenCount.ToString());
@@ -242,7 +262,7 @@ namespace VTWeen
         }
         private void DestroyInstances()
         {
-            if(objs != null && objs.Count > 0)
+            if(objs  is object && objs.Count > 0)
             {
                 for(int i = 0; i < objs.Count; i++)
                 {
@@ -258,7 +278,7 @@ namespace VTWeen
         }
         public void TestValueFloat()
         {
-            if(textVal != null)
+            if(textVal  is object)
             {
                 textVal.SetText(string.Empty);
 
@@ -272,7 +292,7 @@ namespace VTWeen
 
         public void TestValueVector()
         {
-            if(textVal != null)
+            if(textVal  is object)
             {
                 textVal.SetText(string.Empty);
 
@@ -314,6 +334,24 @@ namespace VTWeen
         public void Resume()
         {
             VTween.ResumeAll();
+        }
+        public void TestQueue()
+        {
+            if(obj  is object)
+            {
+                obj.transform.position = defaultPos;
+                var t = new Stopwatch();
+
+                if(enableStopwatch)
+                t.Start();
+
+                obj.transform.SetParent(parent.transform, false);
+                var queue = VTween.queue.add(VTween.move(obj, target, duration).setEase(easeTest))
+                            .add(VTween.move(obj, fromTarget, duration).setEase(easeTest))
+                            .add(VTween.move(obj, defaultPos, duration).setEase(easeTest));
+
+                queue.start();
+            }
         }
     }
 }

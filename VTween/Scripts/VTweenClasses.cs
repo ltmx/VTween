@@ -17,10 +17,8 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-//TODO Known issues:
-//1. setDelay will not respect setFrom if setFrom was used.
-//2. This framework wasn't built for setDelay in general. Well, with some duck-taping it can be done for sure, but will be super ugly
-
+///TODO: NOTE: The purpose of local functions replacing delegates here is to avoid creating new objects. It's pretty much free :)
+///TODO: May as well replace registers with array
 using UnityEngine;
 using System;
 using UnityEngine.UIElements;
@@ -31,7 +29,7 @@ using System.Collections.Generic;
 namespace VTWeen
 {
     ///<summary>Base class of VTween. Shares common properties.</summary>
-    public class VTweenClass : VTweenException, IVCommonBase
+    public class VTweenClass : IVCommonBase
     {
         //Hide public members with excplicit methods
         public IVCommonBase ivcommon { get; private set; }
@@ -52,8 +50,17 @@ namespace VTWeen
         Action IVCommonBase.exec { get; set; }
         Action IVCommonBase.oncomplete { get; set; }
         Action IVCommonBase.softreset { get; set; }
-        List<EventVRegister> IVCommonBase.registers { get; set; } = new List<EventVRegister>();
-
+        Action IVCommonBase.initcallback { get; set; } = null;
+        
+        private EventVRegister[] registers;
+        public void renewRegister(bool rent)
+        {
+            if(rent)
+            registers = VTweenManager.RentRegister(VTweenManager.RegisterLength);
+            else
+            VTweenManager.ReturnRegister(registers);
+        }
+        
         ///<summary>Adds/removes invocation of a delegate.</summary>
         private void AddClearEvent(EventVRegister register, bool falseClearTrueAdd)
         {
@@ -61,31 +68,42 @@ namespace VTWeen
             {
                 if (falseClearTrueAdd) ivcommon.oncomplete += register.callback;
                 else ivcommon.oncomplete -= register.callback;
-
             }
             else if (register.id == 1)
             {
                 if (falseClearTrueAdd) ivcommon.exec += register.callback;
                 else ivcommon.exec -= register.callback;
-
             }
             else if (register.id == 3)
             {
                 if (falseClearTrueAdd) ivcommon.softreset += register.callback;
                 else ivcommon.softreset -= register.callback;
             }
+            else if (register.id == 4)
+            {
+                if (falseClearTrueAdd) ivcommon.initcallback += register.callback;
+                else ivcommon.initcallback -= register.callback;
+            }
         }
         ///<summary>Assigns callback to onComplete, onUpdate, exec.</summary>
         void IVCommonBase.AddRegister(EventVRegister register)
         {
-            ivcommon.registers.Add(register);
+            for(int i = 0; i < registers.Length; i++)
+            {
+                if(registers[i].callback == null)
+                {
+                    registers[i] = register;
+                    break;
+                }
+            }
+            
             AddClearEvent(register, true);
         }
         ///<summary>Registers init.</summary>
         public VTweenClass()
         {
             ivcommon = this;
-            ivcommon.id = VTweenUtil.VtweenGlobalId++;
+            renewRegister(true);
         }
         public virtual void LoopReset() { }
         ///<summary>Executes scaled/unsclade runningTime.</summary>
@@ -97,7 +115,7 @@ namespace VTWeen
                 ivcommon.runningTime += Time.unscaledDeltaTime;
         }
         ///<summary>Floating point ease impl.</summary>
-        float IVCommonBase.RunEaseTimeFloat(float start, float end)
+        float IVCommonBase.RunEaseTimeFloat(in float start, in float end)
         {
             var tm = ivcommon.runningTime / ivcommon.duration;
             var res = VEasings.ValEase(ivcommon.easeType, start, end, tm);
@@ -105,7 +123,7 @@ namespace VTWeen
             return res;
         }
         ///<summary>Vector3 ease impl.</summary>
-        Vector3 IVCommonBase.RunEaseTimeVector3(Vector3 startPos, Vector3 endPos)
+        Vector3 IVCommonBase.RunEaseTimeVector3(in Vector3 startPos, in Vector3 endPos)
         {
             var tm = ivcommon.runningTime / ivcommon.duration;
             var res = new Vector3(VEasings.ValEase(ivcommon.easeType, startPos.x, endPos.x, tm), VEasings.ValEase(ivcommon.easeType, startPos.y, endPos.y, tm), VEasings.ValEase(ivcommon.easeType, startPos.z, endPos.z, tm));
@@ -113,14 +131,14 @@ namespace VTWeen
             return res;
         }
         ///<summary>Vector4 ease impl.</summary>
-        Vector4 IVCommonBase.RunEaseTimeVector4(Vector4 startPos, Vector4 endPos)
+        Vector4 IVCommonBase.RunEaseTimeVector4(in Vector4 startPos, in Vector4 endPos)
         {
             var tm = ivcommon.runningTime / ivcommon.duration;
             var res = new Vector4(VEasings.ValEase(ivcommon.easeType, startPos.x, endPos.x, tm), VEasings.ValEase(ivcommon.easeType, startPos.y, endPos.y, tm), VEasings.ValEase(ivcommon.easeType, startPos.z, endPos.z, tm), VEasings.ValEase(ivcommon.easeType, startPos.w, endPos.w, tm));
             ExecRunningTime();
             return res;
         }
-        Vector2 IVCommonBase.RunEaseTimeVector2(UnityEngine.Vector2 startPos, UnityEngine.Vector2 endPos)
+        Vector2 IVCommonBase.RunEaseTimeVector2(in Vector2 startPos, in Vector2 endPos)
         {
             var tm = ivcommon.runningTime / ivcommon.duration;
             var res = new Vector2(VEasings.ValEase(ivcommon.easeType, startPos.x, endPos.x, tm), VEasings.ValEase(ivcommon.easeType, startPos.y, endPos.y, tm));
@@ -164,21 +182,29 @@ namespace VTWeen
             if (ivcommon.state != TweenState.Tweening)
                 return;
 
-            //Wait for delayed time to be 0.
-            if(ivcommon.delayedTime.HasValue && ivcommon.delayedTime.Value > 0)
-            {
-                if(!ivcommon.unscaledTime)
-                    ivcommon.delayedTime -= Time.deltaTime;
-                else
-                    ivcommon.delayedTime -= Time.unscaledDeltaTime;
-                
-                return;
-            }
-
             if (ivcommon.runningTime >= ivcommon.duration)
             {
                 CheckIfFinished();
                 return;
+            }
+
+            //Wait for delayed time to be 0.
+            if (ivcommon.delayedTime.HasValue && ivcommon.delayedTime.Value > 0)
+            {
+                if (!ivcommon.unscaledTime)
+                    ivcommon.delayedTime -= Time.deltaTime;
+                else
+                    ivcommon.delayedTime -= Time.unscaledDeltaTime;
+
+                return;
+            }
+
+            if (ivcommon.initcallback is object)
+            {
+                ivcommon.initcallback.Invoke();
+                var t = Array.Find(registers, x => x.id == 4);
+                AddClearEvent(t, false);
+                ivcommon.initcallback = null;
             }
 
             ivcommon.exec.Invoke();
@@ -186,16 +212,14 @@ namespace VTWeen
         ///<summary>Will be executed at the very end, the next frame the tween completed</summary>
         VTweenClass IVCommonBase.onComplete(Action callback)
         {
-            var t = new EventVRegister { callback = callback, id = 2 };
-            ivcommon.AddRegister(t);
+            ivcommon.AddRegister(new EventVRegister { callback = callback, id = 2 });
             return this;
         }
         ///<summary>Callback to execute every frame while tweening.</summary>
         VTweenClass IVCommonBase.onUpdate(Action callback)
         {
-            var t = new EventVRegister { callback = callback, id = 1 };
             //Keeps running while tweening.
-            ivcommon.AddRegister(t);
+            ivcommon.AddRegister(new EventVRegister { callback = callback, id = 1 });
             return this;
         }
         ///<summary>Cancels the tween, returns to pool.</summary>
@@ -239,7 +263,7 @@ namespace VTWeen
                     {
                         if (ivcommon.oncompleteRepeat)
                         {
-                            ivcommon.oncomplete.Invoke();
+                            ivcommon.oncomplete?.Invoke();
                         }
                     }
 
@@ -250,11 +274,11 @@ namespace VTWeen
                 {
                     ivcommon.runningTime = 0f;
                     ivcommon.loopCounter = 0;
-                    ivcommon.softreset.Invoke();
+                    ivcommon.softreset?.Invoke();
 
                     if (ivcommon.oncompleteRepeat)
                     {
-                        ivcommon.oncomplete.Invoke();
+                        ivcommon.oncomplete?.Invoke();
                     }
 
                     return;
@@ -265,18 +289,17 @@ namespace VTWeen
             {
                 if (ivcommon.loopAmount == 0)
                 {
-                    ivcommon.oncomplete.Invoke();
+                    ivcommon.oncomplete?.Invoke();
                     Clear(true);
                 }
                 else
                 {
                     if (ivcommon.loopCounter == ivcommon.loopAmount)
                     {
-                        ivcommon.oncomplete.Invoke();
+                        ivcommon.oncomplete?.Invoke();
                         Clear(true);
                     }
                 }
-
             }
             catch (Exception e)
             {
@@ -288,18 +311,36 @@ namespace VTWeen
         ///<summary>Clears invocation lists, prevents leaks.</summary>
         private void ClearInvocations()
         {
-            for (int i = 0; i < ivcommon.registers.Count; i++)
+            for (int i = 0; i < registers.Length; i++)
             {
-                var t = ivcommon.registers[i];
-                AddClearEvent(t, false);
+                AddClearEvent(registers[i], false);
             }
         }
         ///<summary>Set common properties to default value.</summary>
-        private void Clear(bool removeFromActiveList)
+        public void Clear(bool removeFromActiveList)
         {
             ClearInvocations();
+
             if (removeFromActiveList)
+            {
+                ivcommon.loopAmount = 0;
+                ivcommon.loopCounter = 0;
+                ivcommon.pingpongCounter = 0;
+                ivcommon.easeType = Ease.Linear;
+                ivcommon.isLocal = false;
+                ivcommon.unscaledTime = false;
+                ivcommon.pingpong = false;
+                //ivcommon.duration = 0f;
+                ivcommon.runningTime = 0;
+                ivcommon.delayedTime = null;
+                ivcommon.speedBased = false;
+                ivcommon.oncompleteRepeat = false;
+                //ivcommon.exec = null;
+                //ivcommon.oncomplete = null;
+                //ivcommon.softreset = null;
+                //ivcommon.initcallback = null;
                 VTweenManager.RemoveFromActiveTween(this);
+            }
         }
         ///<summary>Checks if tweening.</summary>
         public bool IsTweening() { return ivcommon.state != TweenState.None; }
@@ -323,7 +364,7 @@ namespace VTWeen
     }
 
     ///<summary>Move class. Moves object to target position.</summary>
-    public class VTweenMove : VClass<VTweenMove>
+    public class VTweenMove : VClass<VTweenMove>, IVDefaultIntern
     {
         private Vector3 destination;
         private Transform fromIns;
@@ -339,34 +380,51 @@ namespace VTWeen
             defaultPosition = defPos;
             ivcommon.duration = time;
 
-            Action callback = () =>
-            {
-                if (fromIns != null)
-                {
-                    if (!ivcommon.isLocal)
-                    {
-                        fromIns.position = ivcommon.RunEaseTimeVector3(defaultPosition, destination);
-                    }
-                    else
-                    {
-                        fromIns.localPosition = ivcommon.RunEaseTimeVector3(defaultPosition, destination);
-                    }
-                }
-                else if (fromInsUi != null)
-                {
-                    var tmp = ivcommon.RunEaseTimeVector3(defaultPosition, destination);
-                    fromInsUi.translate = new Translate(tmp.x, tmp.y, tmp.z);
-                }
-            };
+            void callback(){fromIns.position = ivcommon.RunEaseTimeVector3(defaultPosition, destination);}
+            void callbackLocal(){fromIns.localPosition = ivcommon.RunEaseTimeVector3(defaultPosition, destination);}
 
-            var t = new EventVRegister { callback = callback, id = 1 };
-            ivcommon.AddRegister(t);
+            void callbackUi()
+            {
+                var tmp = ivcommon.RunEaseTimeVector3(defaultPosition, destination);
+                fromInsUi.translate = new Translate(tmp.x, tmp.y, tmp.z);
+            }
+
+            if (fromIns is object)
+            {
+                if(!ivcommon.isLocal)
+                    ivcommon.AddRegister(new EventVRegister { callback = callback, id = 1 });
+                else
+                    ivcommon.AddRegister(new EventVRegister { callback = callbackLocal, id = 1 });
+            }
+            else
+            {
+                ivcommon.AddRegister(new EventVRegister { callback = callbackUi, id = 1 });
+            }
+                
             VTweenManager.InsertToActiveTween(this);
+        }
+
+        //Used for chaining only.
+        void IVDefaultIntern.defaultsetter()
+        {
+            if (fromIns is object)
+            {
+                if (!ivcommon.isLocal)
+                    defaultPosition = fromIns.transform.position;
+                else
+                    defaultPosition = fromIns.transform.localPosition;
+            }
+            else if (fromInsUi is object)
+            {
+                defaultPosition = new Vector3(fromInsUi.translate.value.x.value, fromInsUi.translate.value.y.value, fromInsUi.translate.value.z);
+            }
+
+            ivcommon.state = TweenState.Tweening;
         }
         ///<summary>Shuffling the to/from properties.</summary>
         public override void LoopReset()
         {
-            if (fromIns != null)
+            if (fromIns is object)
             {
                 if (!ivcommon.isLocal)
                 {
@@ -383,7 +441,7 @@ namespace VTWeen
                     }
                 }
             }
-            else if (fromInsUi != null)
+            else if (fromInsUi is object)
             {
                 if (!ivcommon.pingpong)
                     fromInsUi.translate = new Translate(defaultPosition.x, defaultPosition.y, defaultPosition.z);
@@ -399,34 +457,50 @@ namespace VTWeen
         ///<summary>Repositioning initial position of object.</summary>
         public VTweenMove setFrom(Vector3 fromPosition)
         {
-            if (fromIns != null)
+            void call()
             {
-                if (!ivcommon.isLocal)
-                    fromIns.position = fromPosition;
-                else
-                    fromIns.localPosition = fromPosition;
-            }
-            else if (fromInsUi != null)
-            {
-                fromInsUi.translate = new Translate(fromPosition.x, fromPosition.y, fromPosition.z);
-            }
+                if (fromIns is object)
+                {
+                    if (!ivcommon.isLocal)
+                        fromIns.position = fromPosition;
+                    else
+                        fromIns.localPosition = fromPosition;
+                }
+                else if (fromInsUi is object)
+                {
+                    fromInsUi.translate = new Translate(fromPosition.x, fromPosition.y, fromPosition.z);
+                }
 
-            defaultPosition = fromPosition;
+                defaultPosition = fromPosition;
+            };
+
+            ivcommon.initcallback = call;
+            ivcommon.AddRegister(new EventVRegister { callback = call, id = 4 });
             return this;
         }
         ///<summary>Sets target to look at while moving.</summary>
         public VTweenMove setLookAt(Vector3 targetToLookAt)
         {
-            var evt = new EventVRegister
-            {
-                callback = () =>
-                {
-                    fromIns.transform.LookAt(targetToLookAt);
-                },
-                id = 1
-            };
+            void evt(){fromIns.transform.LookAt(targetToLookAt);}
+            ivcommon.AddRegister(new EventVRegister{callback = evt,id = 1});
+            return this;
+        }
+        public override VTweenMove setDestroy(bool state)
+        {
+            if (!state)
+                return this;
 
-            ivcommon.AddRegister(evt);
+            if (fromIns is object)
+            {
+                void callback(){GameObject.Destroy(fromIns.gameObject);}
+                ivcommon.AddRegister(new EventVRegister { callback = callback, id = 2 });
+            }
+            else
+            {
+                void callback(){(fromInsUi as VisualElement).RemoveFromHierarchy();}
+                ivcommon.AddRegister(new EventVRegister { callback = callback, id = 2 });
+            }
+
             return this;
         }
     }
@@ -449,52 +523,47 @@ namespace VTWeen
             defaultRotation = trans.rotation;
             itransform = itrans;
 
-            if(transform != null)
+            if (transform is object)
             {
                 if (!ivcommon.isLocal)
                     currentRotation = trans.rotation * Quaternion.AngleAxis(degreeAngle, direction);
                 else
                     currentRotation = trans.localRotation * Quaternion.AngleAxis(degreeAngle, direction);
             }
-            else if(itransform != null)
+            else if (itransform is object)
             {
                 currentRotation = itrans.rotation * Quaternion.AngleAxis(degreeAngle, direction);
             }
 
-            Action callback = () =>
-            {
-                if (transform != null)
-                {
-                    if (!ivcommon.isLocal)
-                    {
-                        trans.rotation = Quaternion.AngleAxis(ivcommon.RunEaseTimeFloat(0f, degreeAngle), direction);
-                    }
-                    else
-                    {
-                        trans.localRotation = Quaternion.AngleAxis(ivcommon.RunEaseTimeFloat(0f, degreeAngle), direction);
-                    }
-                }
-                else if(itransform != null)
-                {
-                    itrans.rotation = Quaternion.AngleAxis(ivcommon.RunEaseTimeFloat(0f, degreeAngle), direction);
-                }
-            };
+            void callback(){trans.rotation = Quaternion.AngleAxis(ivcommon.RunEaseTimeFloat(0f, degreeAngle), direction);}
+            void callbackLocal(){trans.localRotation = Quaternion.AngleAxis(ivcommon.RunEaseTimeFloat(0f, degreeAngle), direction);}
+            void callbackUi(){itrans.rotation = Quaternion.AngleAxis(ivcommon.RunEaseTimeFloat(0f, degreeAngle), direction);}
 
-            var t = new EventVRegister { callback = callback, id = 1 };
-            ivcommon.AddRegister(t);
+            if (trans != null)
+            {
+                if(!ivcommon.isLocal)
+                    ivcommon.AddRegister(new EventVRegister { callback = callback, id = 1 });
+                else
+                    ivcommon.AddRegister(new EventVRegister { callback = callbackLocal, id = 1 });
+            }
+            else
+            {
+                ivcommon.AddRegister(new EventVRegister { callback = callbackUi, id = 1 });
+            }
+
             VTweenManager.InsertToActiveTween(this);
         }
         ///<summary>Resets properties shuffle the destination</summary>
         public override void LoopReset()
         {
-            if(transform != null)
+            if (transform is object)
             {
                 if (!ivcommon.isLocal)
                     transform.transform.rotation = currentRotation;
                 else
                     transform.transform.localRotation = currentRotation;
             }
-            else if(itransform != null)
+            else if (itransform is object)
             {
                 itransform.rotation = currentRotation;
             }
@@ -507,46 +576,70 @@ namespace VTWeen
         ///<summary>Sets target transform to look at while rotating.</summary>
         public VTweenRotate setLookAt(Transform target, Vector3 direction)
         {
-            ivcommon.onUpdate(() =>
+            void Upd()
             {
-                if (transform != null)
+                if (transform is object)
                 {
                     var relativePos = target.position - transform.position;
                     transform.rotation = Quaternion.LookRotation(relativePos, direction);
                 }
-                else if(itransform != null)
+                else if (itransform is object)
                 {
                     var relativePos = target.position - itransform.position;
                     itransform.rotation = Quaternion.LookRotation(relativePos, direction);
                 }
-            });
+            }
+
+            ivcommon.onUpdate(Upd);
             return this;
         }
         ///<summary>Repositioning initial position of object.</summary>
         public VTweenRotate setFrom(float fromAngle, Vector3 direction)
         {
-            if (transform != null)
+            void call()
             {
-                if (!ivcommon.isLocal)
+                if (transform is object)
                 {
-                    transform.rotation = Quaternion.AngleAxis(fromAngle, direction);
-                    defaultRotation = transform.rotation;
+                    if (!ivcommon.isLocal)
+                    {
+                        transform.rotation = Quaternion.AngleAxis(fromAngle, direction);
+                        defaultRotation = transform.rotation;
+                    }
+                    else
+                    {
+                        transform.localRotation = Quaternion.AngleAxis(fromAngle, direction);
+                        defaultRotation = transform.localRotation;
+                    }
                 }
-                else
+                else if (itransform is object)
                 {
-                    transform.localRotation = Quaternion.AngleAxis(fromAngle, direction);
-                    defaultRotation = transform.localRotation;
+                    defaultRotation = itransform.rotation;
                 }
-            }
-            else if(itransform != null)
-            {
-                defaultRotation = itransform.rotation;
-            }
+            };
 
+            ivcommon.initcallback = call;
+            ivcommon.AddRegister(new EventVRegister { callback = call, id = 4 });
+            return this;
+        }
+        public override VTweenRotate setDestroy(bool state)
+        {
+            if (!state)
+                return this;
+
+            if (transform is object)
+            {
+                void callback(){GameObject.Destroy(transform.gameObject);}
+                ivcommon.AddRegister(new EventVRegister { callback = callback, id = 2 });
+            }
+            else
+            {
+                void callback(){(itransform as VisualElement).RemoveFromHierarchy();}
+                ivcommon.AddRegister(new EventVRegister { callback = callback, id = 2 });
+            }
             return this;
         }
     }
-    public class VTweenShaderFloat : VClass<VTweenShaderFloat>
+    public class VTweenShaderFloat : VClass<VTweenShaderFloat>, IVDefaultIntern
     {
         private float from;
         private float to;
@@ -562,15 +655,69 @@ namespace VTWeen
             mat = material;
             refName = shaderReferenceName;
 
-            if(!material.HasFloat(shaderReferenceName))
+            if (!material.HasFloat(shaderReferenceName))
             {
                 throw new VTweenException("No reference named " + shaderReferenceName + " in the material/shader.");
             }
 
-            Action callback = () =>
+            void callback()
             {
                 material.SetFloat(shaderReferenceName, ivcommon.RunEaseTimeFloat(from, to));
-            };
+            }
+
+            var t = new EventVRegister { callback = callback, id = 1 };
+            ivcommon.AddRegister(t);
+            VTweenManager.InsertToActiveTween(this);
+        }
+        ///<summary>Resets properties shuffle the destination</summary>
+        public override void LoopReset()
+        {
+            if (!ivcommon.pingpong)
+            {
+                mat.SetFloat(refName, from);
+            }
+            else
+            {
+                var dest = to;
+                to = from;
+                from = dest;
+            }
+        }
+        ///<summary>Repositioning initial position of object.</summary>
+        public VTweenShaderFloat setFrom(float value)
+        {
+            void call(){from = value;};
+
+            ivcommon.initcallback = call;
+            ivcommon.AddRegister(new EventVRegister { callback = call, id = 4 });
+            return this;
+        }
+    }
+    public class VTweenShaderInt : VClass<VTweenShaderInt>
+    {
+        private int from;
+        private int to;
+        private Material mat;
+        private string refName;
+
+        ///<summary>Sets base values that aren't common properties of the base class.</summary>
+        public void SetBaseValues(Material material, string shaderReferenceName, int fromValue, int toValue, float time)
+        {
+            ivcommon.duration = time;
+            from = fromValue;
+            to = toValue;
+            mat = material;
+            refName = shaderReferenceName;
+
+            if (!material.HasInt(shaderReferenceName))
+            {
+                throw new VTweenException("No reference named " + shaderReferenceName + " in the material/shader.");
+            }
+
+            void callback()
+            {
+                material.SetInt(shaderReferenceName, (int)ivcommon.RunEaseTimeFloat(from, to));
+            }
 
             var t = new EventVRegister { callback = callback, id = 1 };
             ivcommon.AddRegister(t);
@@ -591,9 +738,15 @@ namespace VTWeen
             }
         }
         ///<summary>Repositioning initial position of object.</summary>
-        public VTweenShaderFloat setFrom(float value)
+        public VTweenShaderInt setFrom(int value)
         {
-            from = value;
+            void call()
+            {
+                from = value;
+            };
+
+            ivcommon.initcallback = call;
+            ivcommon.AddRegister(new EventVRegister { callback = call, id = 4 });
             return this;
         }
     }
@@ -613,15 +766,15 @@ namespace VTWeen
             mat = material;
             refName = shaderReferenceName;
 
-            if(!material.HasVector(shaderReferenceName))
+            if (!material.HasVector(shaderReferenceName))
             {
                 throw new VTweenException("No reference named " + shaderReferenceName + " in the material/shader.");
             }
 
-            Action callback = () =>
+            void callback()
             {
                 material.SetVector(shaderReferenceName, ivcommon.RunEaseTimeVector3(from, to));
-            };
+            }
 
             var t = new EventVRegister { callback = callback, id = 1 };
             ivcommon.AddRegister(t);
@@ -644,7 +797,10 @@ namespace VTWeen
         ///<summary>Repositioning initial position of object.</summary>
         public VTweenShaderVector3 setFrom(Vector3 value)
         {
-            from = value;
+            void call(){from = value;};
+
+            ivcommon.initcallback = call;
+            ivcommon.AddRegister(new EventVRegister { callback = call, id = 4 });
             return this;
         }
     }
@@ -664,15 +820,15 @@ namespace VTWeen
             mat = material;
             refName = shaderReferenceName;
 
-            if(!material.HasVector(shaderReferenceName))
+            if (!material.HasVector(shaderReferenceName))
             {
                 throw new VTweenException("No reference named " + shaderReferenceName + " in the material/shader.");
             }
 
-            Action callback = () =>
+            void callback()
             {
                 material.SetVector(shaderReferenceName, ivcommon.RunEaseTimeVector2(from, to));
-            };
+            }
 
             var t = new EventVRegister { callback = callback, id = 1 };
             ivcommon.AddRegister(t);
@@ -695,7 +851,10 @@ namespace VTWeen
         ///<summary>Repositioning initial position of object.</summary>
         public VTweenShaderVector2 setFrom(Vector2 value)
         {
-            from = value;
+            void call(){from = value;};
+
+            ivcommon.initcallback = call;
+            ivcommon.AddRegister(new EventVRegister { callback = call, id = 4 });
             return this;
         }
     }
@@ -713,15 +872,15 @@ namespace VTWeen
             from = fromValue;
             to = toValue;
 
-            Action callback = () =>
+            void callback()
             {
                 runningValue = ivcommon.RunEaseTimeFloat(from, to);
 
-                if (callbackEvent != null)
+                if (callbackEvent is object)
                 {
                     callbackEvent.Invoke(runningValue);
                 }
-            };
+            }
 
             var t = new EventVRegister { callback = callback, id = 1 };
             ivcommon.AddRegister(t);
@@ -745,7 +904,10 @@ namespace VTWeen
         ///<summary>Repositioning initial position of object.</summary>
         public VTweenValueFloat setFrom(float value)
         {
-            from = value;
+            void call(){from = value;};
+
+            ivcommon.initcallback = call;
+            ivcommon.AddRegister(new EventVRegister { callback = call, id = 4 });
             return this;
         }
     }
@@ -763,15 +925,15 @@ namespace VTWeen
             from = fromValue;
             to = toValue;
 
-            Action callback = () =>
+            void callback()
             {
                 runningValue = ivcommon.RunEaseTimeVector2(from, to);
 
-                if (callbackEvent != null)
+                if (callbackEvent is object)
                 {
                     callbackEvent.Invoke(runningValue);
                 }
-            };
+            }
 
             var t = new EventVRegister { callback = callback, id = 1 };
             ivcommon.AddRegister(t);
@@ -795,7 +957,10 @@ namespace VTWeen
         ///<summary>Repositioning initial position of object.</summary>
         public VTweenValueVector2 setFrom(Vector2 value)
         {
-            from = value;
+            void call(){from = value;};
+
+            ivcommon.initcallback = call;
+            ivcommon.AddRegister(new EventVRegister { callback = call, id = 4 });
             return this;
         }
     }
@@ -813,15 +978,15 @@ namespace VTWeen
             from = fromValue;
             to = toValue;
 
-            Action callback = () =>
+            void callback()
             {
                 runningValue = ivcommon.RunEaseTimeVector3(from, to);
 
-                if (callbackEvent != null)
+                if (callbackEvent is object)
                 {
                     callbackEvent.Invoke(runningValue);
                 }
-            };
+            }
 
             var t = new EventVRegister { callback = callback, id = 1 };
             ivcommon.AddRegister(t);
@@ -845,7 +1010,10 @@ namespace VTWeen
         ///<summary>Repositioning initial position of object.</summary>
         public VTweenValueVector3 setFrom(Vector3 value)
         {
-            from = value;
+            void call(){from = value;};
+
+            ivcommon.initcallback = call;
+            ivcommon.AddRegister(new EventVRegister { callback = call, id = 4 });
             return this;
         }
     }
@@ -863,15 +1031,15 @@ namespace VTWeen
             from = fromValue;
             to = toValue;
 
-            Action callback = () =>
+            void callback()
             {
                 runningValue = ivcommon.RunEaseTimeVector4(from, to);
 
-                if (callbackEvent != null)
+                if (callbackEvent is object)
                 {
                     callbackEvent.Invoke(runningValue);
                 }
-            };
+            }
 
             var t = new EventVRegister { callback = callback, id = 1 };
             ivcommon.AddRegister(t);
@@ -895,7 +1063,10 @@ namespace VTWeen
         ///<summary>Repositioning initial position of object.</summary>
         public VTweenValueVector4 setFrom(Vector4 value)
         {
-            from = value;
+            void call(){from = value;};
+
+            ivcommon.initcallback = call;
+            ivcommon.AddRegister(new EventVRegister { callback = call, id = 4 });
             return this;
         }
     }
@@ -916,20 +1087,18 @@ namespace VTWeen
             targetScale = destScale;
             ivcommon.duration = time;
 
-            Action callback = () =>
-            {
-                if (transform != null)
-                {
-                    transform.localScale = ivcommon.RunEaseTimeVector3(defaultScale, targetScale);
-                }
-                else if (itransform != null)
-                {
-                    itransform.scale = new Scale(ivcommon.RunEaseTimeVector3(defaultScale, targetScale));
-                }
-            };
+            void callback(){transform.localScale = ivcommon.RunEaseTimeVector3(defaultScale, targetScale);}
 
-            var t = new EventVRegister { callback = callback, id = 1 };
-            ivcommon.AddRegister(t);
+            void callbackUi()
+            {
+                itransform.scale = new Scale(ivcommon.RunEaseTimeVector3(defaultScale, targetScale));
+            }
+
+            if (transform != null)
+                ivcommon.AddRegister(new EventVRegister { callback = callback, id = 1 });
+            else
+                ivcommon.AddRegister(new EventVRegister { callback = callbackUi, id = 1 });
+
             VTweenManager.InsertToActiveTween(this);
         }
         ///<summary>Resets properties shuffle the destination</summary>
@@ -937,11 +1106,11 @@ namespace VTWeen
         {
             if (!ivcommon.pingpong)
             {
-                if (transform != null)
+                if (transform is object)
                 {
                     transform.localScale = defaultScale;
                 }
-                else if (itransform != null)
+                else if (itransform is object)
                 {
                     itransform.scale = new Scale(defaultScale);
                 }
@@ -956,16 +1125,40 @@ namespace VTWeen
         ///<summary>Repositioning initial position of object.</summary>
         public VTweenScale setFrom(Vector3 fromScale)
         {
-            if (transform != null)
+            void call()
             {
-                transform.localScale = fromScale;
+                if (transform is object)
+                {
+                    transform.localScale = fromScale;
+                }
+                else if (itransform is object)
+                {
+                    itransform.scale = new Scale(fromScale);
+                }
+
+                defaultScale = fromScale;
+            };
+
+            ivcommon.initcallback = call;
+            ivcommon.AddRegister(new EventVRegister { callback = call, id = 4 });
+            return this;
+        }
+        public override VTweenScale setDestroy(bool state)
+        {
+            if (!state)
+                return this;
+
+            if (transform is object)
+            {
+                void callback(){GameObject.Destroy(transform.gameObject);}
+                ivcommon.AddRegister(new EventVRegister { callback = callback, id = 2 });
             }
-            else if (itransform != null)
+            else
             {
-                itransform.scale = new Scale(fromScale);
+                void callback(){(itransform as VisualElement).RemoveFromHierarchy();}
+                ivcommon.AddRegister(new EventVRegister { callback = callback, id = 2 });
             }
 
-            defaultScale = fromScale;
             return this;
         }
     }
@@ -984,29 +1177,30 @@ namespace VTWeen
             visualElement = visualelement;
             ivcommon.duration = time;
 
-            if(from < 0)
+            if (from < 0)
                 from = 0;
-            
-            if(to > 1)
+
+            if (to > 1)
                 to = 1;
 
             fromValue = from;
             toValue = to;
 
-            Action callback = () =>
+            void callback()
             {
-                if (canvyg != null)
-                {
-                    canvyg.alpha = ivcommon.RunEaseTimeFloat(fromValue, toValue);
-                }
-                else if (visualElement != null)
-                {
-                    visualElement.style.opacity = ivcommon.RunEaseTimeFloat(fromValue, toValue);
-                }
-            };
+                canvyg.alpha = ivcommon.RunEaseTimeFloat(fromValue, toValue);
+            }
 
-            var t = new EventVRegister { callback = callback, id = 1 };
-            ivcommon.AddRegister(t);
+            void callbackUi()
+            {
+                visualElement.style.opacity = ivcommon.RunEaseTimeFloat(fromValue, toValue);
+            }
+
+            if (canvyg != null)
+                ivcommon.AddRegister(new EventVRegister { callback = callback, id = 1 });
+            else
+                ivcommon.AddRegister(new EventVRegister { callback = callbackUi, id = 1 });
+
             VTweenManager.InsertToActiveTween(this);
         }
         ///<summary>Resets properties shuffle the destination</summary>
@@ -1014,11 +1208,11 @@ namespace VTWeen
         {
             if (!ivcommon.pingpong)
             {
-                if (canvyg != null)
+                if (canvyg is object)
                 {
                     canvyg.alpha = fromValue;
                 }
-                else if (visualElement != null)
+                else if (visualElement is object)
                 {
                     visualElement.style.opacity = fromValue;
                 }
@@ -1033,10 +1227,16 @@ namespace VTWeen
         ///<summary>Repositioning initial position of object.</summary>
         public VTweenAlpha setFrom(float alphaValue)
         {
-            if(alphaValue < 0)
-                alphaValue = 0;
-            
-            fromValue = alphaValue;
+            void call()
+            {
+                if (alphaValue < 0)
+                    alphaValue = 0;
+
+                fromValue = alphaValue;
+            };
+
+            ivcommon.initcallback = call;
+            ivcommon.AddRegister(new EventVRegister { callback = call, id = 4 });
             return this;
         }
     }
@@ -1057,22 +1257,22 @@ namespace VTWeen
             fromValue = from;
             toValue = to;
 
-            Action callback = () =>
+            void callback()
             {
-                if (image != null)
-                {
-                    Vector4 vecFrom = fromValue;
-                    Vector4 vecTo = toValue;
-                    image.color = ivcommon.RunEaseTimeVector4(fromValue, toValue);
-                }
-                else if (visualElement != null)
-                {
-                    visualElement.style.backgroundColor = new StyleColor(ivcommon.RunEaseTimeVector4(fromValue, toValue));
-                }
-            };
+                Vector4 vecFrom = fromValue;
+                Vector4 vecTo = toValue;
+                image.color = ivcommon.RunEaseTimeVector4(fromValue, toValue);
+            }
 
-            var t = new EventVRegister { callback = callback, id = 1 };
-            ivcommon.AddRegister(t);
+            void callbackUi()
+            {
+                visualElement.style.backgroundColor = new StyleColor(ivcommon.RunEaseTimeVector4(fromValue, toValue));
+            }
+
+            if (image != null)
+                ivcommon.AddRegister(new EventVRegister { callback = callback, id = 1 });
+            else
+                ivcommon.AddRegister(new EventVRegister { callback = callbackUi, id = 1 });
             VTweenManager.InsertToActiveTween(this);
         }
         ///<summary>Resets properties shuffle the destination</summary>
@@ -1080,11 +1280,11 @@ namespace VTWeen
         {
             if (!ivcommon.pingpong)
             {
-                if (image != null)
+                if (image is object)
                 {
                     image.color = fromValue;
                 }
-                else if (visualElement != null)
+                else if (visualElement is object)
                 {
                     visualElement.style.backgroundColor = fromValue;
                 }
@@ -1135,7 +1335,7 @@ namespace VTWeen
         }
         private void SetColor(bool show)
         {
-            if (images != null)
+            if (images is object)
             {
                 for (int i = 0; i < images.Length; i++)
                 {
@@ -1145,7 +1345,7 @@ namespace VTWeen
                     images[i].gameObject.SetActive(show);
                 }
             }
-            else if (uiImages != null)
+            else if (uiImages is object)
             {
                 for (int i = 0; i < uiImages.Length; i++)
                 {
@@ -1164,7 +1364,7 @@ namespace VTWeen
         {
             SetColor(false);
 
-            Action callback = () =>
+            void callback()
             {
                 if ((prevFrame + fps) > Time.frameCount)
                     return;
@@ -1177,45 +1377,58 @@ namespace VTWeen
                     else
                         ivcommon.runningTime += Time.unscaledDeltaTime;
                 }
-                    
 
-                if (images != null)
+                for (int i = 0; i < images.Length; i++)
                 {
-                    for (int i = 0; i < images.Length; i++)
-                    {
-                        if (images[i] == null)
-                            continue;
+                    if (images[i] == null)
+                        continue;
 
-                        if (i == runningIndex)
-                        {
-                            images[i].gameObject.SetActive(true);
-                        }
-                        else
-                        {
-                            images[i].gameObject.SetActive(false);
-                        }
+                    if (i == runningIndex)
+                    {
+                        images[i].gameObject.SetActive(true);
                     }
-                }
-                else if (uiImages != null)
-                {
-                    for (int i = 0; i < uiImages.Length; i++)
+                    else
                     {
-                        if (i == runningIndex)
-                        {
-                            uiImages[i].style.display = DisplayStyle.Flex;
-                        }
-                        else
-                        {
-                            uiImages[i].style.display = DisplayStyle.None;
-                        }
+                        images[i].gameObject.SetActive(false);
                     }
                 }
 
                 runningIndex++;
-            };
+            }
 
-            var t = new EventVRegister { callback = callback, id = 1 };
-            ivcommon.AddRegister(t);
+            void callbackUi()
+            {
+                if ((prevFrame + fps) > Time.frameCount)
+                    return;
+                else
+                {
+                    prevFrame = Time.frameCount;
+
+                    if (!ivcommon.unscaledTime)
+                        ivcommon.runningTime += Time.deltaTime;
+                    else
+                        ivcommon.runningTime += Time.unscaledDeltaTime;
+                }
+
+                for (int i = 0; i < uiImages.Length; i++)
+                {
+                    if (i == runningIndex)
+                    {
+                        uiImages[i].style.display = DisplayStyle.Flex;
+                    }
+                    else
+                    {
+                        uiImages[i].style.display = DisplayStyle.None;
+                    }
+                }
+
+                runningIndex++;
+            }
+
+            if (images != null)
+                ivcommon.AddRegister(new EventVRegister { callback = callback, id = 1 });
+            else
+                ivcommon.AddRegister(new EventVRegister { callback = callbackUi, id = 1 });
             VTweenManager.InsertToActiveTween(this);
         }
         ///<summary>Sets frame-per-second used for the timing.</summary>
@@ -1233,11 +1446,7 @@ namespace VTWeen
         {
             if (state)
             {
-                var act = new Action(() =>
-                {
-                    SetColor(false);
-                });
-
+                void act() { SetColor(false); };
                 var tx = new EventVRegister { callback = act, id = 2 };
                 ivcommon.AddRegister(tx);
             }
@@ -1261,13 +1470,10 @@ namespace VTWeen
             smoothTime = smoothness;
             speedTime = speed;
 
-            Action callback = () =>
+            void callback()
             {
-                if (transform != null)
-                {
-                    transform.position = Vector3.SmoothDamp(transform.position, target.position, ref smoothTime, speedTime);
-                }
-            };
+                transform.position = Vector3.SmoothDamp(transform.position, target.position, ref smoothTime, speedTime);
+            }
 
             var t = new EventVRegister { callback = callback, id = 1 };
             ivcommon.AddRegister(t);
@@ -1292,7 +1498,7 @@ namespace VTWeen
         public Ease easeType { get; set; }
         public float duration { get; set; }
         public float runningTime { get; set; }
-        public float? delayedTime {get;set;}
+        public float? delayedTime { get; set; }
         public bool speedBased { get; set; }
         public bool oncompleteRepeat { get; set; }
         public bool isLocal { get; set; }
@@ -1302,7 +1508,7 @@ namespace VTWeen
         public Action exec { get; set; }
         public Action oncomplete { get; set; }
         public Action softreset { get; set; }
-        public List<EventVRegister> registers { get; set; }
+        public Action initcallback { get; set; }
         public VTweenClass onComplete(Action callback);
         public VTweenClass onUpdate(Action callback);
         public VTweenClass onCompleteRepeat(bool repeatOnComplete);
@@ -1311,10 +1517,10 @@ namespace VTWeen
         public VTweenClass setSpeed(float speed);
         public VTweenClass setLoop(int loopCount);
         public void AddRegister(EventVRegister register);
-        public float RunEaseTimeFloat(float start, float end);
-        public Vector3 RunEaseTimeVector3(Vector3 startPos, Vector3 endPos);
-        public Vector4 RunEaseTimeVector4(Vector4 startPos, Vector4 endPos);
-        public Vector2 RunEaseTimeVector2(Vector2 startPos, Vector2 endPos);
+        public float RunEaseTimeFloat(in float start, in float end);
+        public Vector3 RunEaseTimeVector3(in Vector3 startPos, in Vector3 endPos);
+        public Vector4 RunEaseTimeVector4(in Vector4 startPos, in Vector4 endPos);
+        public Vector2 RunEaseTimeVector2(in Vector2 startPos, in Vector2 endPos);
         public void Exec();
     }
 
@@ -1342,8 +1548,8 @@ namespace VTWeen
         ///<summary>Speed based interpolation rather than time-based</summary>
         public T setSpeed(float speed)
         {
-            if(speed < 0)
-            this.ivcommon.setSpeed(speed);
+            if (speed < 0)
+                this.ivcommon.setSpeed(speed);
             return this as T;
         }
         ///<summary>Unique id for tween instance.</summary>
@@ -1353,7 +1559,7 @@ namespace VTWeen
             return this as T;
         }
         ///<summary>Loop count for each tween instance.</summary>
-        public T setLoop(int loopCount)
+        public T setLoop(in int loopCount)
         {
             this.ivcommon.setLoop(loopCount);
             var tx = new EventVRegister { callback = (this as T).LoopReset, id = 3 };
@@ -1378,10 +1584,16 @@ namespace VTWeen
             this.ivcommon.oncompleteRepeat = state;
             return this as T;
         }
-        public T setDelay(float delayTime)
+        ///<summary>Delays startup execution.</summary>
+        public T setDelay(in float delayTime)
         {
-            if(delayTime > 0f)
-            this.ivcommon.delayedTime = delayTime;
+            if (delayTime > 0f)
+                this.ivcommon.delayedTime = delayTime;
+            return this as T;
+        }
+        ///<summary>Destroys gameObject when completed (if it's a visualElement, it will be removed from the hierarchy).</summary>
+        public virtual T setDestroy(bool state)
+        {
             return this as T;
         }
     }
@@ -1390,5 +1602,10 @@ namespace VTWeen
     {
         public Action callback;
         public int id;
+    }
+    ///<summary>Interface used for chaining only within VTweenExtension class.</summary>
+    public interface IVDefaultIntern
+    {
+        public virtual void defaultsetter() { }
     }
 }

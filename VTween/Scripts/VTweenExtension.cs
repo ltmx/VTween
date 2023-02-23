@@ -20,8 +20,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 using UnityEngine;
 using VTWeen.Extension;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Reflection;
 
-namespace VTWeen
+namespace VTWeen.Extension
 {
     ///<summary>Delayed execution. Respects both scaled/unscaled time</summary>
     public class VTweenExecLater : VClass<VTweenExecLater>
@@ -37,21 +40,69 @@ namespace VTWeen
         }
         public void Init()
         {
-            var t = new EventVRegister { callback = () => { 
-                
+            void evt()
+            {
                 if (!unscaledTime)
                     ivcommon.runningTime += Time.deltaTime;
                 else
                     ivcommon.runningTime += Time.unscaledDeltaTime;
+            }
 
-            }, id = 1 };
-
-            ivcommon.AddRegister(t);
+            ivcommon.AddRegister(new EventVRegister{callback = evt, id = 1});
             VTweenManager.InsertToActiveTween(this);
         }
     }
     public class VTweenQueue
     {
+        private List<VTweenClass> vtweens = new List<VTweenClass>();
+        private Action oncomplete;
+        private Ease? ease;
 
+        public VTweenQueue add(VTweenClass vtween)
+        {
+            vtween.ivcommon.state = TweenState.None;
+            vtweens.Add(vtween);
+            return this;
+        }
+        public void start()
+        {
+            for (int i = 0; i < vtweens.Count; i++)
+            {
+                if (i < vtweens.Count - 1)
+                {
+                    int idx = i + 1;
+
+                    vtweens[i].ivcommon.onComplete(() =>
+                    {
+                        var vts = vtweens[idx] as IVDefaultIntern;
+
+                        if (vts  is object)
+                        {
+                            vts.defaultsetter();
+                        }
+                        else
+                        {
+                            vtweens[idx].ivcommon.state = TweenState.Tweening;
+                        }
+                    });
+                }
+            }
+            
+            vtweens[vtweens.Count - 1].ivcommon.onComplete(oncomplete);
+            vtweens[0].ivcommon.state = TweenState.Tweening;
+        }
+        public VTweenQueue stop()
+        {
+            for (int i = vtweens.Count; i-- > 0;)
+            {
+                vtweens[i].Cancel();
+            }
+            return this;
+        }
+        public VTweenQueue setOnComplete(Action callback)
+        {
+            oncomplete = callback;
+            return this;
+        }
     }
 }
