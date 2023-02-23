@@ -65,7 +65,7 @@ UIToolkit should work as long as you're using Unity editor 2022.2.x and above du
                 //Cancel
                 VTween.Cancel(gameObject);      //GameObjects
                 VTween.Cancel(visualElement);   //UIToolkit
-                VTween.CancelAll();             //Cancels all active tweens
+                VTween.CancelAll();             //Cancels all active/paused tweens
                 
 ```
  
