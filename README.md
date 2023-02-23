@@ -1,7 +1,7 @@
 # VTween
  A compact tweening library for Unity3D. Inspired by the legendary LeanTween.  
  
- <br>Features : </br>
+ <br>**Features :** </br>
 Object Pooling.  
 Low allocation.  
 Blazingly fast.
