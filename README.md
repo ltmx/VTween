@@ -1,5 +1,5 @@
 # VTween
- A compact tweening library for Unity3D with only just 30kb of size. Inspired by the legendary LeanTween.  
+ A compact tweening library for Unity3D. Inspired by the legendary LeanTween.  
  
  <br>Features : </br>
 Object Pooling.  
