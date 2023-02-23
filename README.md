@@ -1,14 +1,19 @@
 # VTween
  A compact tweening library for Unity3D with only just 30kb of size. Inspired by the legendary LeanTween.  
  
+ <br>Features : </br>
+Object Pooling.  
+Close to zero allocation.(it's magic!)  
+Blazingly fast.
+
  <br>**Requirement**</br>
- Unity3D 2022.2.x and above.  
+Unity3D 2022.2.x and above.  
  
  <br>**Installation**</br>
 Download the .zip and unpack it to your Assets folder in your project.  
 
  <br>**UIToolkit ~Experimental**</br>
- UIToolkit should work as long as you're using Unity editor 2022.2.x and above due to style translate api.  
+UIToolkit should work as long as you're using Unity editor 2022.2.x and above due to style translate api.  
 
  <br>Syntax</br>
 ```
@@ -24,6 +29,11 @@ Download the .zip and unpack it to your Assets folder in your project.
                 
                 //Scale
                 VTween.scale(obj, new Vector3(2, 2, 2), duration).setEase(Ease.Linear).setLoop(3);
+
+                //Chaining
+                var queue = VTween.queue.add(VTween.move(gameObject, new Vector3(100, 200, 2), duration).setEase(Ease.Linear))
+                            .add(VTween.move(gameObject, new Vector3(200, 300, 200), duration))
+                            .add(VTween.move(gameObject, defaultPos, duration));
 
                 //ExecuteLater (Similar to LeanTween.delayedCall)
                 VTween.execLater(5, ()=> {UnityEngine.Debug.Log("Done waiting!");});
@@ -51,6 +61,11 @@ Download the .zip and unpack it to your Assets folder in your project.
                 
                 //Value //Interpolates float value(supported types: float, Vector2, Vector3, Vector4)
                 VTween.value(0f, 5f, 3f, (x)=> {Debug.Log("running value : " + x)});
+
+                //Cancel
+                VTween.Cancel(gameObject);      //GameObjects
+                VTween.Cancel(visualElement);   //UIToolkit
+                VTween.CancelAll();             //Cancels all active tweens
                 
 ```
  
