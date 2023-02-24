@@ -11,6 +11,7 @@ Unity3D 2022.2.x and above.
  
  <br>**Installation**</br>
 Download the .zip and unpack it to your Assets folder in your project.  
+Add the reference `using Breadnone;`
 
  <br>**UIToolkit ~Experimental**</br>
 UIToolkit should work as long as you're using Unity editor 2022.2.x and above due to style translate api.  
