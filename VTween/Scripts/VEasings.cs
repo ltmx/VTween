@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace VTWeen
+namespace Breadnone
 {
     public enum Ease
     {
@@ -880,7 +880,7 @@ namespace VTWeen
         }
 
         //Easy to manage this way
-        public static float ValEase(Ease easingFunction, float a, float b, float value)
+        public static float ValEase(in Ease easingFunction, in float a, in float b, in float value)
         {
             switch (easingFunction)
             {

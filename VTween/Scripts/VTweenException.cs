@@ -19,7 +19,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
 
-namespace VTWeen
+namespace Breadnone.Extension
 {
     public class VTweenException : Exception
     {

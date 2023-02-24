@@ -18,11 +18,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 using UnityEngine;
-using VTWeen.Extension;
+using Breadnone.Extension;
 using UnityEngine.UIElements;
 using System;
 
-namespace VTWeen
+namespace Breadnone
 {
     public static class VTween
     { 
@@ -67,6 +67,7 @@ namespace VTWeen
             instance.SetBaseValues(null, visualElement.style, to, visualElement.transform.position, duration);
             return instance;
         }
+
         ///<summary>Moves object localSpace.</summary>
         public static VTweenMove moveLocal(GameObject gameObject, Vector3 to, float duration)
         {
@@ -447,6 +448,7 @@ namespace VTWeen
             instance.SetBaseValues(material, referenceName, from, to, time);
             return instance;
         }
+        ///<summary>Interpolates integer value.</summary>
         public static VTweenShaderInt shaderInt(Material material, string referenceName, int from, int to, float time)
         {
             var instance = new VTweenShaderInt();
@@ -507,30 +509,15 @@ namespace VTWeen
             }
         }
         ///<summary>Pauses single isntance of active tween.</summary>
-        public static void Pause(VTweenClass vtween)
-        {
-            VExtension.Pause(vtween, false);
-        }
+        public static void Pause(VTweenClass vtween){VExtension.Pause(vtween, false);}
         ///<summary>Resume single instance of tween.</summary>
-        public static void Resume(VTweenClass vtween)
-        {
-            VExtension.Resume(vtween, false);
-        }
+        public static void Resume(VTweenClass vtween){VExtension.Resume(vtween, false);}
         ///<summary>Resumes all tweens.</summary>
-        public static void ResumeAll()
-        {
-            VExtension.Resume(null, true);
-        }
+        public static void ResumeAll(){VExtension.Resume(null, true);}
         ///<summary>Pauses all tweens.</summary>
-        public static void PauseAll()
-        {
-            VExtension.Pause(null, true);
-        }
+        public static void PauseAll(){VExtension.Pause(null, true);}
         ///<summary>Cancels all tweens.</summary>
-        public static void CancelAll()
-        {
-            VExtension.Cancel(null, true);
-        }
+        public static void CancelAll(){VExtension.Cancel(null, true);}
         ///<summary>Cancels VTween instance.</summary>
         public static void Cancel(GameObject gameObject, bool onComplete)
         {
@@ -572,6 +559,10 @@ namespace VTWeen
 
             return false;
         }
+        ///<summary>Flush and resize the pools.</summary>
+        public static void FlushPools(int poolSize){ VTweenManager.FlushPools(poolSize);}
+        ///<summary>Resize the registers in VTweenClass.</summary>
+        public static void ResizeRegisters(int newSize){VTweenManager.RegisterLength = newSize;}
         #endregion
     }
 }

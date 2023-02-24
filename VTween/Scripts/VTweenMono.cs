@@ -21,52 +21,24 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
 using System.Collections.Generic;
+using Breadnone.Extension;
 
-namespace VTWeen
+
+public class VTweenMono : MonoBehaviour
 {
-    public class VTweenMono : MonoBehaviour
+    public static bool VTweenWorkerIsRunning = false;
+    void Start()
     {
-        public static bool VTweenWorkerIsRunning = false;
-        void Start()
-        {
-            DontDestroyOnLoad(this);
-            SceneManager.activeSceneChanged += ChangedActiveScene;
-        }
-        private void ChangedActiveScene(Scene current, Scene next)
-        {
-            VTweenManager.AbortVTweenWorker();
-        }
-        void OnApplicationQuit()
-        {
-            VTweenManager.AbortVTweenWorker();
-        }
-
-        public void StartWorker()
-        {
-            if(VTweenWorkerIsRunning)
-                return;
-
-            StartCoroutine(VTweenPoolWorker());
-        }
-        public void StopWorker()
-        {
-            StopCoroutine(VTweenPoolWorker());
-        }
-        private IEnumerator VTweenPoolWorker()
-        {
-            VTweenWorkerIsRunning = true;
-
-            while (VTweenManager.activeTweens.Count > 0)
-            {
-                yield return null;
-
-                for (int i = VTweenManager.activeTweens.Count; i-- > 0;)
-                {
-                    VTweenManager.activeTweens[i].ivcommon.Exec();
-                } 
-            }
-
-            VTweenWorkerIsRunning = false;
-        }
+        DontDestroyOnLoad(this);
+        SceneManager.activeSceneChanged += ChangedActiveScene;
+    }
+    private void ChangedActiveScene(Scene current, Scene next)
+    {
+        VTweenManager.AbortVTweenWorker();
+    }
+    void OnApplicationQuit()
+    {
+        VTweenManager.AbortVTweenWorker();
     }
 }
+

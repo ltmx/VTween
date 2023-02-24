@@ -21,12 +21,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using System;
-using VTWeen;
+using Breadnone;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine.UI;
 using System.Collections;
-
 public class VStressTests : MonoBehaviour
 {
     [SerializeField] private TMP_Text labelCounter;
@@ -34,12 +33,10 @@ public class VStressTests : MonoBehaviour
     [SerializeField] private Transform parent;
     [SerializeField] private List<GameObject> xBottomObjects = new List<GameObject>();
     [SerializeField] private int loopCount = 20;
-    [SerializeField] private double waitTime = 1;
     [SerializeField] private Ease ease = Ease.Linear;
     [SerializeField] private TMP_Text btnText;
     [SerializeField] private bool pingPong;
 
-    private CancellationTokenSource cts = new CancellationTokenSource();
     private int spawnCounter = 0;
     private bool cancelled = false;
     public void StartStressTesting()
@@ -48,14 +45,15 @@ public class VStressTests : MonoBehaviour
         VTween.CancelAll();
         StartCoroutine(StartStressTest());
     }
+    [SerializeField] private bool useLimit = false;
+    [SerializeField] private int spawnCycleAmount = 10;
     private IEnumerator StartStressTest()
     {        
         yield return null;
 
         while (!cancelled)
-        {
-            if(cancelled)
-                yield break;
+        {           
+            spawnCycleAmount--;
 
             for (int i = 0; i < xTopObjects.Count; i++)
             {
@@ -65,9 +63,8 @@ public class VStressTests : MonoBehaviour
                 VTween.move(go, xBottomObjects[UnityEngine.Random.Range(0, xBottomObjects.Count - 1)].transform, UnityEngine.Random.Range(1f, 3f)).setLoop(loopCount).setEase(ease).setPingPong(pingPong).setDestroy(true);
 
                 spawnCounter++;
-                labelCounter.SetText("TOTAL TWEENS : " + spawnCounter);
-
                 yield return null;
+
                 if(cancelled)
                     yield break;
 
@@ -78,11 +75,19 @@ public class VStressTests : MonoBehaviour
                     ggo.GetComponent<Image>().color = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
                     VTween.move(ggo, xTopObjects[UnityEngine.Random.Range(0, xTopObjects.Count - 1)].transform, UnityEngine.Random.Range(1.5f, 3f)).setLoop(loopCount).setEase(ease).setPingPong(pingPong).setDestroy(true);
                     spawnCounter++;
-                    labelCounter.SetText("TOTAL TWEENS : " + spawnCounter);
                     yield return null;
+
                     if(cancelled)
                         yield break;
                 }
+
+                labelCounter.SetText("TOTAL TWEENS : " + spawnCounter);
+            }
+
+            if(useLimit)
+            {
+                if(spawnCycleAmount == 0)
+                    yield break;
             }
         }
     }
@@ -90,7 +95,6 @@ public class VStressTests : MonoBehaviour
     public void Cancel()
     {
         cancelled = true;
-        StopAllCoroutines();
     }
     void OnDisable()
     {
@@ -100,5 +104,24 @@ public class VStressTests : MonoBehaviour
     public void SetTimeScale(float val)
     {
         Time.timeScale = val;
+    }
+    public async void CanceAll()
+    {
+        cancelled = true;
+        await Task.Yield();
+        VTween.CancelAll();
+        await Task.Yield();
+        cancelled = false;
+    }
+    private bool paused;
+    public async void PauseAll()
+    {
+        cancelled = true;
+        await Task.Yield();
+        VTween.PauseAll();
+    }
+    public void Resume()
+    {
+        VTween.ResumeAll();
     }
 }

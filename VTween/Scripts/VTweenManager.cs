@@ -22,42 +22,47 @@ using System.Threading.Tasks;
 using System;
 using UnityEngine;
 using System.Buffers;
-using Collections.Pooled;
 
-namespace VTWeen
+namespace Breadnone.Extension
 {
     public class VTweenManager
     {
-        public static PooledList<VTweenClass> activeTweens { get; private set; } = new PooledList<VTweenClass>();
+        public static List<VTweenClass> activeTweens { get; private set; } = new List<VTweenClass>();
         public static VTweenClass[] unusedTweens;
-        public static PooledList<VTweenClass> pausedTweens { get; private set; } = new PooledList<VTweenClass>();
+        public static List<VTweenClass> pausedTweens { get; private set; } = new List<VTweenClass>();
         public static ArrayPool<EventVRegister> regs = ArrayPool<EventVRegister>.Shared;
-        public static ReadOnlySpan<VTweenClass> unused => unusedTweens;
-        private static bool VWorkerIsRunning { get; set; }
+        private static bool VWorkerIsRunning;
         public static VTweenMono vtmono { get; set; }
         public static void InitPool(int len){unusedTweens = new VTweenClass[len];}
+        ///<summary>Gets registers.</summary>
         public static EventVRegister[] RentRegister(int len){return regs.Rent(len);}
+        ///<summary>Returns the registers</summary>
         public static void ReturnRegister(EventVRegister[] events){regs.Return(events, true);}
         public static int RegisterLength{get;set;} = 10;
+        ///<summary>Resizes the size of pool. Default is 10.</summary>
+        public static void FlushPools(int poolSize){InitPool(poolSize);}
+        ///<summary>Adds to active list.</summary>
         public static void InsertToActiveTween(VTweenClass vtween)
         {
             vtween.ivcommon.state = TweenState.Tweening;
             activeTweens.Add(vtween);
             VTweenWorker();
         }
-
+        ///<summary>Removes from active list.</summary>
         public static void RemoveFromActiveTween(VTweenClass vtween)
         {
             vtween.ivcommon.state = TweenState.None;
             InsertRemoveUnused(vtween);
             activeTweens.Remove(vtween);
         }
+        ///<summary>Removes from active list and returns back to the pool.</summary>
         public static void InsertRemoveUnused(VTweenClass vtween)
         {
-            for (int i = 0; i < unused.Length; i++)
+            for (int i = 0; i < unusedTweens.Length; i++)
             {
-                if (unused[i] is null)
+                if (unusedTweens[i] is null)
                 {
+                    vtween.DefaultProperties();
                     unusedTweens[i] = vtween;
                     return;
                 }
@@ -65,6 +70,7 @@ namespace VTWeen
 
             vtween.renewRegister(false);
         }
+        ///<summary>Acts as background worker.</summary>
         private static async void VTweenWorker()
         {
             if (VWorkerIsRunning)
@@ -79,12 +85,13 @@ namespace VTWeen
 
                 for (int i = activeTweens.Count; i-- > 0;)
                 {
-                    activeTweens[i].ivcommon.Exec();
+                    activeTweens[i].Exec();
                 }
             }
 
             VWorkerIsRunning = false;
         }
+        ///<summary>Cancels background worker, resets the lists.</summary>
         public static void AbortVTweenWorker()
         {
             VWorkerIsRunning = false;
@@ -105,13 +112,14 @@ namespace VTWeen
                 pausedTweens[i].Cancel();
             }
         }
-
+        ///<summary>Adds to the pause list.</summary>
         public static void PoolToPaused(VTweenClass vtween)
         {
             activeTweens.Remove(vtween);
             vtween.ivcommon.state = TweenState.Paused;
             pausedTweens.Add(vtween);
         }
+        ///<summary>Removes from the pause list</summary>
         public static void UnPoolPaused(VTweenClass vtween)
         {
             pausedTweens.Remove(vtween);
@@ -123,33 +131,11 @@ namespace VTWeen
             VTweenWorker();
         }
     }
-}
-
-namespace VTWeen.Extension
-{
-    public static class VTweenUtil
-    {
-        public static int VtweenGlobalId { get; set; } = 1;
-    }
-
+    ///<summary>VTween global Ids.</summary>
+    public static class VTweenUtil{public static int VtweenGlobalId { get; set; } = 1;}
+    ///<summary>Collection of VTween helper functions.</summary>
     public static class VExtension
     {
-        public static float RunEaseTimeFloat(Ease easeType, float start, float end, float value)
-        {
-            return VEasings.ValEase(easeType, start, end, value);
-        }
-        public static Vector2 RunEaseTimeVector2(Ease easeType, Vector2 startPos, Vector2 endPos, float value)
-        {
-            return new Vector2(VEasings.ValEase(easeType, startPos.x, endPos.x, value), VEasings.ValEase(easeType, startPos.y, endPos.y, value));
-        }
-        public static Vector3 RunEaseTimeVector3(Ease easeType, Vector3 startPos, Vector3 endPos, float value)
-        {
-            return new Vector3(VEasings.ValEase(easeType, startPos.x, endPos.x, value), VEasings.ValEase(easeType, startPos.y, endPos.y, value), VEasings.ValEase(easeType, startPos.z, endPos.z, value));
-        }
-        public static Vector4 RunEaseTimeVector3(Ease easeType, Vector4 startPos, Vector4 endPos, float value)
-        {
-            return new Vector4(VEasings.ValEase(easeType, startPos.x, endPos.x, value), VEasings.ValEase(easeType, startPos.y, endPos.y, value), VEasings.ValEase(easeType, startPos.z, endPos.z, value), VEasings.ValEase(easeType, startPos.w, endPos.w, value));
-        }
         public static void Pause(VTweenClass vtween, bool all = false)
         {
             if (!all)
@@ -172,7 +158,7 @@ namespace VTWeen.Extension
                 }
             }
         }
-
+        ///<summary>Resumes the tween</summary>
         public static void Resume(VTweenClass vtween, bool all = false)
         {
             if (!all)
@@ -194,6 +180,7 @@ namespace VTWeen.Extension
                 }
             }
         }
+        ///<summary>Resumes the tween.</summary>
         public static void Cancel(int vid, bool state)
         {
             for (int i = VTweenManager.activeTweens.Count; i-- > 0;)
@@ -211,13 +198,14 @@ namespace VTWeen.Extension
             
             for(int i = 1; i < VTweenManager.pausedTweens.Count; i++)
             {
-                if(VTweenManager.unused[i].ivcommon.id == vid)
+                if(VTweenManager.unusedTweens[i].ivcommon.id == vid)
                 {
-                    VTweenManager.unused[i].Resume();
+                    VTweenManager.unusedTweens[i].Resume();
                     break;
                 }
             }
         }
+        ///<summary>Cancels the tween.</summary>
         public static void Cancel(VTweenClass vtween, bool all = false)
         {
             if (!all)
@@ -239,42 +227,33 @@ namespace VTWeen.Extension
                 if (VTweenManager.pausedTweens.Count == 0)
                     return;
 
-                for (int i = VTweenManager.unused.Length; i-- > 0;)
+                for (int i = VTweenManager.unusedTweens.Length; i-- > 0;)
                 {
-                    var t = VTweenManager.unused[i];
+                    var t = VTweenManager.unusedTweens[i];
                     t.Cancel();
                 }
-
             }
         }
-        public static VTweenClass[] GetActiveTweens()
-        {
-            return VTweenManager.activeTweens.ToArray();
-        }
-        public static VTweenClass[] GetPausedTweens()
-        {
-            return VTweenManager.pausedTweens.ToArray();
-        }
-        private static bool CheckTypes<T>(VTweenClass targetToCheck) where T : VTweenClass
-        {
-            return targetToCheck is T;
-        }
+        ///<summary>Returns array of all active tweens.</summary>
+        public static VTweenClass[] GetActiveTweens(){return VTweenManager.activeTweens.ToArray();}
+        ///<summary>Returns array of all paused tweens.</summary>
+        public static VTweenClass[] GetPausedTweens(){return VTweenManager.pausedTweens.ToArray();}
         ///<summary>VTween object pooling. Default is 5.</summary>
         public static T GetInstance<T>(int vid) where T : VTweenClass, new()
         {
-            for (int i = VTweenManager.unused.Length; i-- > 0;)
+            for (int i = VTweenManager.unusedTweens.Length; i-- > 0;)
             {
-                if (VTweenManager.unused[i] is null)
-                    continue;
-
-                if (VTweenManager.unused[i] is T validT)
+                if (VTweenManager.unusedTweens[i] is T validT)
                 {
                     validT.ivcommon.id = vid;
-                    VTweenManager.unusedTweens[i] = null;
+                    VTweenManager.unusedTweens[i] = null;                    
                     return validT;
                 }
             }
-
+            // No need to be fancy here, null-ing the last and first slots is effective enough
+            VTweenManager.unusedTweens[VTweenManager.unusedTweens.Length - 1] = null;
+            VTweenManager.unusedTweens[0] = null;
+            
             T nut = new T();
             nut.ivcommon.id = vid;
             return nut;

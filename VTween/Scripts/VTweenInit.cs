@@ -19,7 +19,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using UnityEngine;
 
-namespace VTWeen
+namespace Breadnone.Extension
 {
     class TweeInitClass
     {
