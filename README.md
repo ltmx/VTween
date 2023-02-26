@@ -80,6 +80,15 @@ By default the pooled object is set to 10 instances. For heavy usages we can set
                 
 ```
  
+ **Strut based tweens (move & follow)**
+ ```
+   //Fast & low allocation api. Allocated on the stack
+   var t = VTween.moveFast(obj, target.position, duration, ease:Ease.Linear);
+   
+   /The instance can't be cached on collections/arrays/fields. Cancelling must be happening in the same scope or else it would fail.
+   t.TryCancel();
+ ```
+ 
  **ToDo:**  
  - CustomYieldInstruction. Currently uses it's own timing.  
  - Port more LeanTween apis.
