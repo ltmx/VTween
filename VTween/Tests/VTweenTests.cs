@@ -299,6 +299,7 @@ public class VTweenTests : MonoBehaviour
         objs = new List<GameObject>();
         distanceAmount = defaultDistance;
     }
+    
     public void TestValueFloat()
     {
         if (textVal is object)
