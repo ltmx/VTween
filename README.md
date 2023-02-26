@@ -82,13 +82,18 @@ By default the pooled object is set to 10 instances. For heavy usages we can set
  
  **Strut based tweens (move & follow)**  
  A fire & forget struct based tween instance. Use this only when you don't need to cancel/pause the tween (thus FireAndForget). They're live on the stack.  
- Note: The gameObject/VisualElement tied to this instance can't be destroyed while being active!
+ <br>Note:</br>  
+ - The gameObject/VisualElement tied to this instance can't be destroyed while being active!  
+ - MUST use VTween.TryForceCancel(gameObject) to cancel! Not recommended for mass cancelling!  
+ - Can't be cached in a collections/arrays/fields (Fire-and-Forget remember :)).  
+ 
  ```
    //Fast & low allocation api. Allocated on the stack
    var t = VTween.moveFast(obj, target.position, duration, ease:Ease.Linear);
    
-   /The instance can't be cached on collections/arrays/fields. Cancelling must be happening in the same scope or else it would fail.
-   t.TryCancel();
+   //The instance can't be cached on collections/arrays/fields.
+   //This is slow cancelling and as stated this api is for Fire-and-Forget. 
+   VTween.TryForceCancel(obj);
  ```
  
  **ToDo:**  
