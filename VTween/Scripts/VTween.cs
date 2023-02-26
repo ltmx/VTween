@@ -21,11 +21,29 @@ using UnityEngine;
 using Breadnone.Extension;
 using UnityEngine.UIElements;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Breadnone
 {
     public static class VTween
     { 
+        #region Fast-Move (low alloc)
+        //Transform trans, Vector3 to, float time, Ease ease, bool localSpace = false, bool unscaledTime = false
+        public static STStructMove moveFast(GameObject gameObject, Vector3 to, float time, float loopCount = 0, Ease ease = Ease.Linear, Action onComplete = null, bool localSpace = false, bool unscaledTime = false)
+        {
+            return new STStructMove(gameObject, to, time, loopCount, ease, onComplete, localSpace, unscaledTime);
+        }
+        public static STStructMoveUI moveFast(VisualElement visualElement, Vector3 to, float time, float loopCount = 0, Ease ease = Ease.Linear, Action onComplete = null, bool unscaledTime = false)
+        {
+            return new STStructMoveUI(visualElement, to, time, loopCount, ease, onComplete, unscaledTime);
+        }
+        public static STStructFollow followFast(GameObject gameObject, Transform target, float speed, Vector3 smoothness)
+        {
+            return new STStructFollow(gameObject, target, speed, smoothness);
+        }
+        #endregion
+
         #region Move
         ///<summary>Moves object to target position Vector3.</summary>
         public static VTweenMove move(GameObject gameObject, Vector3 to, float duration)
@@ -73,7 +91,7 @@ namespace Breadnone
         {
             var instance = VExtension.GetInstance<VTweenMove>(gameObject.GetInstanceID());
             var trans = gameObject.transform;
-            instance.ivcommon.isLocal = true;
+            instance.vprops.isLocal = true;
             instance.SetBaseValues(trans, null, to, trans.localPosition, duration);
             return instance;
         }
@@ -82,7 +100,7 @@ namespace Breadnone
         {
             var instance = VExtension.GetInstance<VTweenMove>(gameObject.GetInstanceID());
             var trans = gameObject.transform;
-            instance.ivcommon.isLocal = true;
+            instance.vprops.isLocal = true;
             instance.SetBaseValues(trans, null, to.localPosition, trans.localPosition, duration);
             return instance;
         }
@@ -91,7 +109,7 @@ namespace Breadnone
         {
             var instance = VExtension.GetInstance<VTweenMove>(transform.gameObject.GetInstanceID());
             var trans = transform;
-            instance.ivcommon.isLocal = true;
+            instance.vprops.isLocal = true;
             instance.SetBaseValues(trans, null, to.localPosition, trans.localPosition, duration);
             return instance;
         }
@@ -124,7 +142,7 @@ namespace Breadnone
         {
             var instance = VExtension.GetInstance<VTweenMove>(gameObject.GetInstanceID());
             var trans = gameObject.transform;
-            instance.ivcommon.isLocal = true;
+            instance.vprops.isLocal = true;
             instance.SetBaseValues(trans, null, new Vector3(to, trans.localPosition.y, trans.localPosition.z), trans.localPosition, duration);
             return instance;
         }
@@ -133,7 +151,7 @@ namespace Breadnone
         {
             var instance = new VTweenMove();
             var trans = transform;
-            instance.ivcommon.isLocal = true;
+            instance.vprops.isLocal = true;
             instance.SetBaseValues(trans, null, new Vector3(to, trans.localPosition.y, trans.localPosition.z), trans.localPosition, duration);
             return instance;
         }
@@ -166,7 +184,7 @@ namespace Breadnone
         {
             var instance = VExtension.GetInstance<VTweenMove>(gameObject.GetInstanceID());
             var trans = gameObject.transform;
-            instance.ivcommon.isLocal = true;
+            instance.vprops.isLocal = true;
             instance.SetBaseValues(trans, null, new Vector3(trans.localPosition.x, to, trans.localPosition.z), trans.localPosition, duration);
             return instance;
         }
@@ -175,7 +193,7 @@ namespace Breadnone
         {
             var instance = VExtension.GetInstance<VTweenMove>(transform.gameObject.GetInstanceID());
             var trans = transform;
-            instance.ivcommon.isLocal = true;
+            instance.vprops.isLocal = true;
             instance.SetBaseValues(trans, null, new Vector3(trans.localPosition.x, to, trans.localPosition.z), trans.localPosition, duration);
             return instance;
         }
@@ -200,7 +218,7 @@ namespace Breadnone
         {
             var instance = VExtension.GetInstance<VTweenMove>(gameObject.GetInstanceID());
             var trans = gameObject.transform;
-            instance.ivcommon.isLocal = true;
+            instance.vprops.isLocal = true;
             instance.SetBaseValues(trans, null, new Vector3(trans.localPosition.x, trans.localPosition.y, to), trans.localPosition, duration);
             return instance;
         }
@@ -209,7 +227,7 @@ namespace Breadnone
         {
             var instance = VExtension.GetInstance<VTweenMove>(transform.gameObject.GetInstanceID());
             var trans = transform;
-            instance.ivcommon.isLocal = true;
+            instance.vprops.isLocal = true;
             instance.SetBaseValues(trans, null, new Vector3(trans.localPosition.x, trans.localPosition.y, to), trans.localPosition, duration);
             return instance;
         }
@@ -237,7 +255,7 @@ namespace Breadnone
         {
             var instance = new VTweenRotate();
             var trans = gameObject.transform;
-            instance.ivcommon.isLocal = true;
+            instance.vprops.isLocal = true;
             instance.SetBaseValues(trans, null, to, direction, duration);
             return instance;
         }
@@ -553,7 +571,7 @@ namespace Breadnone
             {
                 var val = VTweenManager.activeTweens[i];
                 
-                if(val  is object && val.ivcommon.id == customId)
+                if(val  is object && val.vprops.id == customId)
                     return true;
             }
 

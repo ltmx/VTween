@@ -376,4 +376,9 @@ public class VTweenTests : MonoBehaviour
             queue.start();
         }
     }
+    public void MoveFast()
+    {
+        var t = VTween.moveFast(obj, target.position, duration, ease:Ease.Linear);
+        t.TryCancel();
+    }
 }

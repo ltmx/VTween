@@ -32,143 +32,124 @@ namespace Breadnone.Extension
     ///<summary>Base class of VTween. Shares common properties.</summary>
     public class VTweenClass : IVCommonBase
     {
-        public int id { get; set; }
-        //Hide public members with excplicit methods
-        public IVCommonBase ivcommon { get; private set; }
-        int IVCommonBase.loopAmount { get; set; }
-        int IVCommonBase.loopCounter { get; set; }
-        int IVCommonBase.pingpongCounter { get; set; }
-        Ease IVCommonBase.easeType { get; set; } = Ease.Linear;
-        bool IVCommonBase.isLocal { get; set; }
-        bool IVCommonBase.pingpong { get; set; }
-        float IVCommonBase.duration { get; set; }
-        float IVCommonBase.runningTime { get; set; }
-        float? IVCommonBase.delayedTime { get; set; }
-        bool IVCommonBase.oncompleteRepeat { get; set; }
-        TweenState IVCommonBase.state { get; set; }
-        Action IVCommonBase.exec { get; set; }
-        Action IVCommonBase.oncomplete { get; set; }
-        Action IVCommonBase.runTime { get; set; }
-        EventVRegister[] IVCommonBase.registers { get; set; }
-
+        public VTProps vprops;
+        public IVCommonBase ivcommon;
+        public List<EventVRegister> registers;
+        public TweenState state;
+        private Action exec;
+        private Action oncomplete;
+        public Action runTime;
+        private Ease easeType;
         public void renewRegister(bool rent)
         {
             if (rent)
-                ivcommon.registers = VTweenManager.RentRegister(VTweenManager.RegisterLength);
+                registers = new List<EventVRegister>(3);
             else
             {
-                ivcommon.runTime -= ivcommon.ExecRunningTimeScaled;
-                ivcommon.runTime -= ivcommon.ExecRunningTimeUnscaled;
-                VTweenManager.ReturnRegister(ivcommon.registers);
+                runTime -= ivcommon.ExecRunningTimeScaled;
+                runTime -= ivcommon.ExecRunningTimeUnscaled;
             }
         }
 
         ///<summary>Adds/removes invocation of a delegate.</summary>
-        void IVCommonBase.AddClearEvent(in EventVRegister register, bool falseClearTrueAdd)
+        void IVCommonBase.AddClearEvent(EventVRegister register, bool falseClearTrueAdd)
         {
             if (register.id == 2)
             {
-                if (falseClearTrueAdd) ivcommon.oncomplete += register.callback;
-                else ivcommon.oncomplete -= register.callback;
+                if (falseClearTrueAdd) oncomplete += register.callback;
+                else oncomplete -= register.callback;
             }
             else if (register.id == 1)
             {
-                if (falseClearTrueAdd) ivcommon.exec += register.callback;
-                else ivcommon.exec -= register.callback;
+                if (falseClearTrueAdd) exec += register.callback;
+                else exec -= register.callback;
             }
         }
         ///<summary>Assigns callback to onComplete, onUpdate, exec.</summary>
-        void IVCommonBase.AddRegister(in EventVRegister register)
+        void IVCommonBase.AddRegister(EventVRegister register)
         {
-            for (int i = 0; i < ivcommon.registers.Length; i++)
-            {
-                if (ivcommon.registers[i].callback == null)
-                {
-                    ivcommon.registers[i] = register;
-                    break;
-                }
-            }
-
+            registers.Add(register);
             ivcommon.AddClearEvent(register, true);
         }
         ///<summary>Registers init.</summary>
         public VTweenClass()
         {
+            vprops = new VTProps();
             ivcommon = this;
-            ivcommon.runTime = ivcommon.ExecRunningTimeScaled;
+            runTime = ivcommon.ExecRunningTimeScaled;
             renewRegister(true);
         }
         public virtual void LoopReset() { }
 
         ///<summary>Executes scaled/unsclade runningTime.</summary>
-        void IVCommonBase.ExecRunningTimeScaled() { ivcommon.runningTime += Time.deltaTime; }
-        void IVCommonBase.ExecRunningTimeUnscaled() { ivcommon.runningTime += Time.unscaledDeltaTime; }
+        void IVCommonBase.ExecRunningTimeScaled() { vprops.runningTime += Time.deltaTime; }
+        void IVCommonBase.ExecRunningTimeUnscaled() { vprops.runningTime += Time.unscaledDeltaTime; }
 
         ///<summary>Floating point ease impl.</summary>
-        float IVCommonBase.RunEaseTimeFloat(in float start, in float end)
+        float IVCommonBase.RunEaseTimeFloat(float start, float end)
         {
-            var tm = ivcommon.runningTime / ivcommon.duration;
-            var res = VEasings.ValEase(ivcommon.easeType, start, end, tm);
-            ivcommon.runTime.Invoke();
+            var tm = vprops.runningTime / vprops.duration;
+            var res = VEasings.ValEase(easeType, start, end, tm);
+            runTime.Invoke();
             return res;
         }
         ///<summary>Vector3 ease impl.</summary>
-        Vector3 IVCommonBase.RunEaseTimeVector3(in Vector3 startPos, in Vector3 endPos)
+        Vector3 IVCommonBase.RunEaseTimeVector3(Vector3 startPos, Vector3 endPos)
         {
-            var tm = ivcommon.runningTime / ivcommon.duration;
-            var res = new Vector3(VEasings.ValEase(ivcommon.easeType, startPos.x, endPos.x, tm), VEasings.ValEase(ivcommon.easeType, startPos.y, endPos.y, tm), VEasings.ValEase(ivcommon.easeType, startPos.z, endPos.z, tm));
-            ivcommon.runTime.Invoke();
-            return res;
+            var tm = vprops.runningTime / vprops.duration;
+            //Float version- NOT OPTIMIZED! var res = new Vector3(VEasings.ValEase(easeType, startPos.x, endPos.x, tm), VEasings.ValEase(easeType, startPos.y, endPos.y, tm), VEasings.ValEase(easeType, startPos.z, endPos.z, tm));
+            runTime.Invoke();
+            return VEasings.ValEase(easeType, startPos, endPos, tm);
         }
         ///<summary>Vector4 ease impl.</summary>
-        Vector4 IVCommonBase.RunEaseTimeVector4(in Vector4 startPos, in Vector4 endPos)
+        Vector4 IVCommonBase.RunEaseTimeVector4(Vector4 startPos, Vector4 endPos)
         {
-            var tm = ivcommon.runningTime / ivcommon.duration;
-            var res = new Vector4(VEasings.ValEase(ivcommon.easeType, startPos.x, endPos.x, tm), VEasings.ValEase(ivcommon.easeType, startPos.y, endPos.y, tm), VEasings.ValEase(ivcommon.easeType, startPos.z, endPos.z, tm), VEasings.ValEase(ivcommon.easeType, startPos.w, endPos.w, tm));
-            ivcommon.runTime.Invoke();
+            var tm = vprops.runningTime / vprops.duration;
+            var res = new Vector4(VEasings.ValEase(easeType, startPos.x, endPos.x, tm), VEasings.ValEase(easeType, startPos.y, endPos.y, tm), VEasings.ValEase(easeType, startPos.z, endPos.z, tm), VEasings.ValEase(easeType, startPos.w, endPos.w, tm));
+            runTime.Invoke();
             return res;
         }
         ///<summary>Vector2 ease impl</summary>
-        Vector2 IVCommonBase.RunEaseTimeVector2(in Vector2 startPos, in Vector2 endPos)
+        Vector2 IVCommonBase.RunEaseTimeVector2(Vector2 startPos, Vector2 endPos)
         {
-            var tm = ivcommon.runningTime / ivcommon.duration;
-            var res = new Vector2(VEasings.ValEase(ivcommon.easeType, startPos.x, endPos.x, tm), VEasings.ValEase(ivcommon.easeType, startPos.y, endPos.y, tm));
-            ivcommon.runTime.Invoke();
+            var tm = vprops.runningTime / vprops.duration;
+            var res = new Vector2(VEasings.ValEase(easeType, startPos.x, endPos.x, tm), VEasings.ValEase(easeType, startPos.y, endPos.y, tm));
+            runTime.Invoke();
             return res;
         }
         ///<summary>Amount of loops a single tween.</summary>
-        VTweenClass IVCommonBase.setLoop(in int loopCount)
+        VTweenClass IVCommonBase.setLoop(int loopCount)
         {
-            ivcommon.loopAmount = loopCount;
+            vprops.loopAmount = loopCount;
             return this;
         }
 
         ///<summary>Back and forth, pingpong-like animation.</summary>
         VTweenClass IVCommonBase.setPingPong(bool state)
         {
-            ivcommon.pingpong = state;
+            vprops.pingpong = state;
             return this;
         }
 
         ///<summary>Ease function to be used with the tween.</summary>
-        VTweenClass IVCommonBase.setEase(in Ease ease)
+        VTweenClass IVCommonBase.setEase(Ease ease)
         {
-            ivcommon.easeType = ease;
+            easeType = ease;
             return this;
         }
         ///<summary>Execute method chain, will be executed every frame.</summary>
         public void Exec()
         {
-            if (ivcommon.state != TweenState.Tweening)
+            if (state != TweenState.Tweening)
                 return;
 
-            if (ivcommon.runningTime + 0.001f > ivcommon.duration)
+            if (vprops.runningTime + 0.0001f > vprops.duration)
             {
                 CheckIfFinished();
                 return;
             }
 
-            ivcommon.exec.Invoke();
+            exec.Invoke();
         }
         ///<summary>Will be executed at the very end, the next frame the tween completed</summary>
         VTweenClass IVCommonBase.onComplete(Action callback)
@@ -186,15 +167,15 @@ namespace Breadnone.Extension
         ///<summary>Cancels the tween, returns to pool.</summary>
         public void Cancel(bool executeOnComplete = false)
         {
-            if (ivcommon.state == TweenState.None)
+            if (state == TweenState.None)
                 return;
 
             if (executeOnComplete)
             {
-                ivcommon.oncomplete.Invoke();
+                oncomplete.Invoke();
             }
 
-            if (ivcommon.state == TweenState.Paused)
+            if (state == TweenState.Paused)
             {
                 VTweenManager.pausedTweens.Remove(this);
                 Clear(false);
@@ -207,39 +188,39 @@ namespace Breadnone.Extension
         ///<summary>Checks if tweening already was done or still tweening</summary>
         public void CheckIfFinished()
         {
-            if (ivcommon.loopAmount > 0)
+            if (vprops.loopAmount > 0)
             {
-                ivcommon.loopCounter++;
+                vprops.loopCounter++;
 
-                if (ivcommon.loopAmount > ivcommon.loopCounter)
+                if (vprops.loopAmount > vprops.loopCounter)
                 {
-                    ivcommon.runningTime = 0f;
+                    vprops.runningTime = 0f;
                     LoopReset();
 
-                    if (ivcommon.pingpong)
+                    if (vprops.pingpong)
                     {
-                        ivcommon.pingpongCounter++;
+                        vprops.pingpongCounter++;
                     }
                     else
                     {
-                        if (ivcommon.oncompleteRepeat)
+                        if (vprops.oncompleteRepeat)
                         {
-                            ivcommon.oncomplete.Invoke();
+                            oncomplete?.Invoke();
                         }
                     }
 
                     return;
                 }
 
-                if (ivcommon.pingpong && ivcommon.pingpongCounter != ivcommon.loopAmount)
+                if (vprops.pingpong && vprops.pingpongCounter != vprops.loopAmount)
                 {
-                    ivcommon.runningTime = 0f;
-                    ivcommon.loopCounter = 0;
+                    vprops.runningTime = 0f;
+                    vprops.loopCounter = 0;
                     LoopReset();
 
-                    if (ivcommon.oncompleteRepeat)
+                    if (vprops.oncompleteRepeat)
                     {
-                        ivcommon.oncomplete.Invoke();
+                        oncomplete?.Invoke();
                     }
 
                     return;
@@ -248,16 +229,16 @@ namespace Breadnone.Extension
 
             try
             {
-                if (ivcommon.loopAmount == 0)
+                if (vprops.loopAmount == 0)
                 {
-                    ivcommon.oncomplete.Invoke();
+                    oncomplete?.Invoke();
                     Clear(true);
                 }
                 else
                 {
-                    if (ivcommon.loopCounter == ivcommon.loopAmount)
+                    if (vprops.loopCounter == vprops.loopAmount)
                     {
-                        ivcommon.oncomplete.Invoke();
+                        oncomplete?.Invoke();
                         Clear(true);
                     }
                 }
@@ -271,9 +252,9 @@ namespace Breadnone.Extension
         ///<summary>Set common properties to default value.</summary>
         public void Clear(bool removeFromActiveList)
         {
-            for (int i = 0; i < ivcommon.registers.Length; i++)
+            for (int i = 0; i < registers.Count; i++)
             {
-                ivcommon.AddClearEvent(ivcommon.registers[i], false);
+                ivcommon.AddClearEvent(registers[i], false);
             }
 
             if (removeFromActiveList)
@@ -284,27 +265,15 @@ namespace Breadnone.Extension
         ///<summary>Sets to default for re-use purposes.</summary>
         public void DefaultProperties()
         {
-            ivcommon.loopAmount = 0;
-            ivcommon.loopCounter = 0;
-            ivcommon.pingpongCounter = 0;
-            ivcommon.easeType = Ease.Linear;
-            ivcommon.isLocal = false;
-            ivcommon.pingpong = false;
-            //ivcommon.duration = 0f;
-            ivcommon.runningTime = 0;
-            ivcommon.delayedTime = null;
-            ivcommon.oncompleteRepeat = false;
-            //ivcommon.exec = null;
-            //ivcommon.oncomplete = null;
-            //ivcommon.softreset = null;
+            vprops.SetDefault();
         }
         ///<summary>Checks if tweening.</summary>
-        public bool IsTweening() { return ivcommon.state != TweenState.None; }
+        public bool IsTweening() { return state != TweenState.None; }
 
         ///<summary>Pauses the tweening.</summary>
         public void Pause()
         {
-            if (ivcommon.state != TweenState.Tweening)
+            if (state != TweenState.Tweening)
                 return;
 
             VTweenManager.PoolToPaused(this);
@@ -312,7 +281,7 @@ namespace Breadnone.Extension
         ///<summary>Resumes paused tween instances, if any.</summary>
         public void Resume()
         {
-            if (ivcommon.state != TweenState.Paused)
+            if (state != TweenState.Paused)
                 return;
 
             VTweenManager.UnPoolPaused(this);
@@ -334,7 +303,7 @@ namespace Breadnone.Extension
             fromIns = trans;
             fromInsUi = istyle;
             defaultPosition = defPos;
-            ivcommon.duration = time;
+            vprops.duration = time;
 
             void callback() { fromIns.position = ivcommon.RunEaseTimeVector3(defaultPosition, destination); }
             void callbackLocal() { fromIns.localPosition = ivcommon.RunEaseTimeVector3(defaultPosition, destination); }
@@ -347,7 +316,7 @@ namespace Breadnone.Extension
 
             if (fromIns is object)
             {
-                if (!ivcommon.isLocal)
+                if (!vprops.isLocal)
                     ivcommon.AddRegister(new EventVRegister { callback = callback, id = 1 });
                 else
                     ivcommon.AddRegister(new EventVRegister { callback = callbackLocal, id = 1 });
@@ -360,22 +329,21 @@ namespace Breadnone.Extension
             VTweenManager.InsertToActiveTween(this);
         }
 
-
         ///<summary>Shuffling the to/from properties.</summary>
         public override void LoopReset()
         {
             if (fromIns is object)
             {
-                if (!ivcommon.isLocal)
+                if (!vprops.isLocal)
                 {
-                    if (!ivcommon.pingpong)
+                    if (!vprops.pingpong)
                     {
                         fromIns.transform.position = defaultPosition;
                     }
                 }
                 else
                 {
-                    if (!ivcommon.pingpong)
+                    if (!vprops.pingpong)
                     {
                         fromIns.transform.localPosition = defaultPosition;
                     }
@@ -383,11 +351,11 @@ namespace Breadnone.Extension
             }
             else if (fromInsUi is object)
             {
-                if (!ivcommon.pingpong)
+                if (!vprops.pingpong)
                     fromInsUi.translate = new Translate(defaultPosition.x, defaultPosition.y, defaultPosition.z);
             }
 
-            if (ivcommon.pingpong)
+            if (vprops.pingpong)
             {
                 var dest = destination;
                 destination = defaultPosition;
@@ -396,25 +364,26 @@ namespace Breadnone.Extension
         }
         public void UpdatePos()
         {
-            for (int i = 0; i < ivcommon.registers.Length; i++)
+            for (int i = 0; i < registers.Count; i++)
             {
-                if (ivcommon.registers[i].id == 1)
+                if (registers[i].id == 1)
                 {
-                    ivcommon.AddClearEvent(ivcommon.registers[i], false);
+                    ivcommon.AddClearEvent(registers[i], false);
                     break;
                 }
             }
 
-            ivcommon.runningTime = 0;
+            vprops.runningTime = 0;
             VTweenManager.activeTweens.Remove(this);
-            SetBaseValues(fromIns, fromInsUi, destination, fromIns.transform.position, ivcommon.duration);
+            SetBaseValues(fromIns, fromInsUi, destination, fromIns.transform.position, vprops.duration);
         }
+
         ///<summary>Repositioning initial position of object.</summary>
         public VTweenMove setFrom(Vector3 fromPosition)
         {
             if (fromIns is object)
             {
-                if (!ivcommon.isLocal)
+                if (!vprops.isLocal)
                     fromIns.position = fromPosition;
                 else
                     fromIns.localPosition = fromPosition;
@@ -469,13 +438,13 @@ namespace Breadnone.Extension
         {
             transform = trans;
             degreeAngle = angle;
-            ivcommon.duration = time;
+            vprops.duration = time;
             defaultRotation = trans.rotation;
             itransform = itrans;
 
             if (transform is object)
             {
-                if (!ivcommon.isLocal)
+                if (!vprops.isLocal)
                     currentRotation = trans.rotation * Quaternion.AngleAxis(degreeAngle, direction);
                 else
                     currentRotation = trans.localRotation * Quaternion.AngleAxis(degreeAngle, direction);
@@ -491,7 +460,7 @@ namespace Breadnone.Extension
 
             if (trans is object)
             {
-                if (!ivcommon.isLocal)
+                if (!vprops.isLocal)
                     ivcommon.AddRegister(new EventVRegister { callback = callback, id = 1 });
                 else
                     ivcommon.AddRegister(new EventVRegister { callback = callbackLocal, id = 1 });
@@ -508,7 +477,7 @@ namespace Breadnone.Extension
         {
             if (transform is object)
             {
-                if (!ivcommon.isLocal)
+                if (!vprops.isLocal)
                     transform.transform.rotation = currentRotation;
                 else
                     transform.transform.localRotation = currentRotation;
@@ -518,7 +487,7 @@ namespace Breadnone.Extension
                 itransform.rotation = currentRotation;
             }
 
-            if (ivcommon.pingpong)
+            if (vprops.pingpong)
             {
                 degreeAngle = -degreeAngle;
             }
@@ -548,7 +517,7 @@ namespace Breadnone.Extension
         {
             if (transform is object)
             {
-                if (!ivcommon.isLocal)
+                if (!vprops.isLocal)
                 {
                     transform.rotation = Quaternion.AngleAxis(fromAngle, direction);
                     defaultRotation = transform.rotation;
@@ -596,7 +565,7 @@ namespace Breadnone.Extension
         ///<summary>Sets base values that aren't common properties of the base class.</summary>
         public void SetBaseValues(Material material, string shaderReferenceName, in float fromValue, in float toValue, in float time)
         {
-            ivcommon.duration = time;
+            vprops.duration = time;
             from = fromValue;
             to = toValue;
             mat = material;
@@ -618,7 +587,7 @@ namespace Breadnone.Extension
         ///<summary>Resets properties shuffle the destination</summary>
         public override void LoopReset()
         {
-            if (!ivcommon.pingpong)
+            if (!vprops.pingpong)
             {
                 mat.SetFloat(refName, from);
             }
@@ -641,7 +610,7 @@ namespace Breadnone.Extension
         ///<summary>Sets base values that aren't common properties of the base class.</summary>
         public void SetBaseValues(Material material, string shaderReferenceName, in int fromValue, in int toValue, in float time)
         {
-            ivcommon.duration = time;
+            vprops.duration = time;
             from = fromValue;
             to = toValue;
             mat = material;
@@ -663,11 +632,11 @@ namespace Breadnone.Extension
         ///<summary>Resets properties shuffle the destination</summary>
         public override void LoopReset()
         {
-            if (!ivcommon.pingpong)
+            if (!vprops.pingpong)
             {
                 mat.SetFloat(refName, from);
             }
-            else if (ivcommon.pingpong)
+            else if (vprops.pingpong)
             {
                 var dest = to;
                 to = from;
@@ -686,7 +655,7 @@ namespace Breadnone.Extension
         ///<summary>Sets Vector3 reference in the shader.</summary>
         public void SetBaseValues(Material material, string shaderReferenceName, Vector3 fromValue, Vector3 toValue, in float time)
         {
-            ivcommon.duration = time;
+            vprops.duration = time;
             from = fromValue;
             to = toValue;
             mat = material;
@@ -708,11 +677,11 @@ namespace Breadnone.Extension
         ///<summary>Interpolates Vector3 reference in the shader/material</summary>
         public override void LoopReset()
         {
-            if (!ivcommon.pingpong)
+            if (!vprops.pingpong)
             {
                 mat.SetVector(refName, from);
             }
-            else if (ivcommon.pingpong)
+            else if (vprops.pingpong)
             {
                 var dest = to;
                 to = from;
@@ -731,7 +700,7 @@ namespace Breadnone.Extension
         ///<summary>Sets Vector3 reference in the shader.</summary>
         public void SetBaseValues(Material material, string shaderReferenceName, Vector2 fromValue, Vector2 toValue, in float time)
         {
-            ivcommon.duration = time;
+            vprops.duration = time;
             from = fromValue;
             to = toValue;
             mat = material;
@@ -753,11 +722,11 @@ namespace Breadnone.Extension
         ///<summary>Interpolates Vector3 reference in the shader/material</summary>
         public override void LoopReset()
         {
-            if (!ivcommon.pingpong)
+            if (!vprops.pingpong)
             {
                 mat.SetVector(refName, from);
             }
-            else if (ivcommon.pingpong)
+            else if (vprops.pingpong)
             {
                 var dest = to;
                 to = from;
@@ -775,7 +744,7 @@ namespace Breadnone.Extension
         ///<summary>Sets base values that aren't common properties of the base class.</summary>
         public void SetBaseValues(in float fromValue, in float toValue, in float time, Action<float> callbackEvent)
         {
-            ivcommon.duration = time;
+            vprops.duration = time;
             from = fromValue;
             to = toValue;
 
@@ -796,11 +765,11 @@ namespace Breadnone.Extension
         ///<summary>Resets properties shuffle the destination</summary>
         public override void LoopReset()
         {
-            if (!ivcommon.pingpong)
+            if (!vprops.pingpong)
             {
                 runningValue = from;
             }
-            else if (ivcommon.pingpong)
+            else if (vprops.pingpong)
             {
                 var dest = to;
                 to = from;
@@ -820,7 +789,7 @@ namespace Breadnone.Extension
         public void SetBaseValues(Vector2 fromValue, Vector2 toValue, in float time, Action<Vector2> callbackEvent)
         {
             runningValue = Vector2.zero;
-            ivcommon.duration = time;
+            vprops.duration = time;
             from = fromValue;
             to = toValue;
 
@@ -841,11 +810,11 @@ namespace Breadnone.Extension
         ///<summary>Resets properties shuffle the destination</summary>
         public override void LoopReset()
         {
-            if (!ivcommon.pingpong)
+            if (!vprops.pingpong)
             {
                 runningValue = from;
             }
-            else if (ivcommon.pingpong)
+            else if (vprops.pingpong)
             {
                 var dest = to;
                 to = from;
@@ -865,7 +834,7 @@ namespace Breadnone.Extension
         public void SetBaseValues(Vector3 fromValue, Vector3 toValue, in float time, Action<Vector3> callbackEvent)
         {
             runningValue = Vector3.zero;
-            ivcommon.duration = time;
+            vprops.duration = time;
             from = fromValue;
             to = toValue;
 
@@ -886,11 +855,11 @@ namespace Breadnone.Extension
         ///<summary>Resets properties shuffle the destination</summary>
         public override void LoopReset()
         {
-            if (!ivcommon.pingpong)
+            if (!vprops.pingpong)
             {
                 runningValue = from;
             }
-            else if (ivcommon.pingpong)
+            else if (vprops.pingpong)
             {
                 var dest = to;
                 to = from;
@@ -910,7 +879,7 @@ namespace Breadnone.Extension
         public void SetBaseValues(Vector4 fromValue, Vector4 toValue, in float time, Action<Vector4> callbackEvent)
         {
             runningValue = Vector4.zero;
-            ivcommon.duration = time;
+            vprops.duration = time;
             from = fromValue;
             to = toValue;
 
@@ -931,11 +900,11 @@ namespace Breadnone.Extension
         ///<summary>Resets properties shuffle the destination</summary>
         public override void LoopReset()
         {
-            if (!ivcommon.pingpong)
+            if (!vprops.pingpong)
             {
                 runningValue = from;
             }
-            else if (ivcommon.pingpong)
+            else if (vprops.pingpong)
             {
                 var dest = to;
                 to = from;
@@ -959,7 +928,7 @@ namespace Breadnone.Extension
             itransform = itrans;
             defaultScale = defScale;
             targetScale = destScale;
-            ivcommon.duration = time;
+            vprops.duration = time;
 
             void callback() { transform.localScale = ivcommon.RunEaseTimeVector3(defaultScale, targetScale); }
             void callbackUi() { itransform.scale = new Scale(ivcommon.RunEaseTimeVector3(defaultScale, targetScale)); }
@@ -974,7 +943,7 @@ namespace Breadnone.Extension
         ///<summary>Resets properties shuffle the destination</summary>
         public override void LoopReset()
         {
-            if (!ivcommon.pingpong)
+            if (!vprops.pingpong)
             {
                 if (transform is object)
                 {
@@ -1025,7 +994,7 @@ namespace Breadnone.Extension
         {
             canvyg = canvas;
             visualElement = visualelement;
-            ivcommon.duration = time;
+            vprops.duration = time;
 
             if (from < 0)
                 from = 0;
@@ -1056,7 +1025,7 @@ namespace Breadnone.Extension
         ///<summary>Resets properties shuffle the destination</summary>
         public override void LoopReset()
         {
-            if (!ivcommon.pingpong)
+            if (!vprops.pingpong)
             {
                 if (canvyg is object)
                 {
@@ -1088,7 +1057,7 @@ namespace Breadnone.Extension
         {
             image = uiimage;
             visualElement = visualelement;
-            ivcommon.duration = time;
+            vprops.duration = time;
             fromValue = from;
             toValue = to;
 
@@ -1113,7 +1082,7 @@ namespace Breadnone.Extension
         ///<summary>Resets properties shuffle the destination</summary>
         public override void LoopReset()
         {
-            if (!ivcommon.pingpong)
+            if (!vprops.pingpong)
             {
                 if (image is object)
                 {
@@ -1145,7 +1114,7 @@ namespace Breadnone.Extension
         ///<summary>Sets base values that aren't common properties of the base class. Default sets to 12 frame/second. Use setFps for custom frame per second.</summary>
         public void SetBaseValues(UnityEngine.UI.Image[] legacyimages, UnityEngine.UIElements.Image[] uiimages, in int? framePerSecond, in float time)
         {
-            ivcommon.duration = time;
+            vprops.duration = time;
             images = legacyimages;
             uiImages = uiimages;
 
@@ -1154,14 +1123,14 @@ namespace Breadnone.Extension
                 fps = framePerSecond.Value;
             }
 
-            ivcommon.duration = time;
+            vprops.duration = time;
         }
         ///<summary>Resets properties shuffle the destination</summary>
         public override void LoopReset()
         {
             if (runningIndex == images.Length)
             {
-                if (!ivcommon.pingpong)
+                if (!vprops.pingpong)
                 {
                     Array.Reverse(images);
                 }
@@ -1311,33 +1280,17 @@ namespace Breadnone.Extension
     ///<summary>Base class common properties. Will be declared explicitly the class.</summary>
     public interface IVCommonBase
     {
-        public int id { get; set; }
-        public int loopAmount { get; set; }
-        public int loopCounter { get; set; }
-        public int pingpongCounter { get; set; }
-        public Ease easeType { get; set; }
-        public float duration { get; set; }
-        public float runningTime { get; set; }
-        public float? delayedTime { get; set; }
-        public bool oncompleteRepeat { get; set; }
-        public bool isLocal { get; set; }
-        public bool pingpong { get; set; }
-        public TweenState state { get; set; }
-        public Action exec { get; set; }
-        public Action oncomplete { get; set; }
-        public Action runTime { get; set; }
         public VTweenClass onComplete(Action callback);
         public VTweenClass onUpdate(Action callback);
         public VTweenClass setPingPong(bool state);
-        public VTweenClass setEase(in Ease ease);
-        public VTweenClass setLoop(in int loopCount);
-        public void AddRegister(in EventVRegister register);
-        public float RunEaseTimeFloat(in float start, in float end);
-        public Vector3 RunEaseTimeVector3(in Vector3 startPos, in Vector3 endPos);
-        public Vector4 RunEaseTimeVector4(in Vector4 startPos, in Vector4 endPos);
-        public Vector2 RunEaseTimeVector2(in Vector2 startPos, in Vector2 endPos);
-        public EventVRegister[] registers { get; set; }
-        public void AddClearEvent(in EventVRegister register, bool falseClearTrueAdd);
+        public VTweenClass setEase(Ease ease);
+        public VTweenClass setLoop(int loopCount);
+        public void AddRegister(EventVRegister register);
+        public float RunEaseTimeFloat(float start, float end);
+        public Vector3 RunEaseTimeVector3(Vector3 startPos, Vector3 endPos);
+        public Vector4 RunEaseTimeVector4(Vector4 startPos, Vector4 endPos);
+        public Vector2 RunEaseTimeVector2(Vector2 startPos, Vector2 endPos);
+        public void AddClearEvent(EventVRegister register, bool falseClearTrueAdd);
         public void ExecRunningTimeScaled();
         public void ExecRunningTimeUnscaled();
     }
@@ -1372,7 +1325,11 @@ namespace Breadnone.Extension
         public T setUnscaledTime(bool state)
         {
             if (state)
-                this.ivcommon.runTime = this.ivcommon.ExecRunningTimeUnscaled;
+            {
+                this.runTime -= this.ivcommon.ExecRunningTimeScaled;
+                this.runTime = this.ivcommon.ExecRunningTimeUnscaled;
+            }
+
             return this as T;
         }
         ///<summary>Back and forth or pingpong-like interpolation.</summary>
@@ -1384,7 +1341,7 @@ namespace Breadnone.Extension
         ///<summary>Back and forth or pingpong-like interpolation.</summary>
         public T setOnCompleteRepeat(bool state)
         {
-            this.ivcommon.oncompleteRepeat = state;
+            this.vprops.oncompleteRepeat = state;
             return this as T;
         }
         ///<summary>Delays startup execution.</summary>
@@ -1392,25 +1349,25 @@ namespace Breadnone.Extension
         {
             if (delayTime > 0f)
             {
-                this.ivcommon.delayedTime = delayTime;
+                this.vprops.delayedTime = delayTime;
             }
 
-            for (int i = 0; i < ivcommon.registers.Length; i++)
+            for (int i = 0; i < registers.Count; i++)
             {
-                if (ivcommon.registers[i].id == 1)
+                if (registers[i].id == 1)
                 {
-                    ivcommon.AddClearEvent(ivcommon.registers[i], false);
+                    ivcommon.AddClearEvent(registers[i], false);
 
                     void delayed()
                     {
                         //Wait for delayed time to be 0.
-                        if (ivcommon.delayedTime.HasValue && ivcommon.delayedTime.Value > 0)
+                        if (vprops.delayedTime.HasValue && vprops.delayedTime.Value > 0)
                         {
-                            ivcommon.delayedTime -= Time.deltaTime;
+                            vprops.delayedTime -= Time.deltaTime;
                             return;
                         }
 
-                        ivcommon.registers[i].callback.Invoke();
+                        registers[i].callback.Invoke();
                     };
 
                     ivcommon.AddRegister(new EventVRegister { callback = delayed, id = 1 });
@@ -1426,9 +1383,42 @@ namespace Breadnone.Extension
         }
     }
     ///<summary>Wrapper to VTweenClass events/delegates.</summary>
-    public struct EventVRegister
+    public class EventVRegister
     {
         public Action callback;
         public int id;
+    }
+    public struct VTProps
+    {
+        public int id { get; set; }
+        public int loopAmount { get; set; }
+        public int loopCounter { get; set; }
+        public int pingpongCounter { get; set; }
+        public bool isLocal { get; set; }
+        public bool pingpong { get; set; }
+        public float duration { get; set; }
+        public float runningTime { get; set; }
+        public float? delayedTime { get; set; }
+        public bool oncompleteRepeat { get; set; }
+
+        public void SetDefault()
+        {
+            id = 0;
+            loopAmount = 0;
+            pingpongCounter = 0;
+            isLocal = false;
+            pingpong = false;
+            loopCounter = 0;
+            duration = 0;
+            runningTime = 0;
+            delayedTime = null;
+            oncompleteRepeat = false;
+        }
+    }
+    public struct VTDelegate
+    {
+        public Action exec { get; set; }
+        public Action oncomplete { get; set; }
+        public Action runTime { get; set; }
     }
 }

@@ -22,16 +22,25 @@ using System.Threading.Tasks;
 using System;
 using UnityEngine;
 using System.Buffers;
+using System.Linq;
 
 namespace Breadnone.Extension
 {
     public class VTweenManager
     {
+        ///<summary>Main active loop.</summary>
         public static List<VTweenClass> activeTweens { get; private set; } = new List<VTweenClass>();
+        ///<summary>Active struct list.</summary>
+        public static List<(Action callback, int id)> activeStructTweens {get;set;} = new List<(Action, int)>();
+        ///<summary>Unused tweens.</summary>
         public static VTweenClass[] unusedTweens;
+        ///<summary>Paused tweens.</summary>
         public static List<VTweenClass> pausedTweens { get; private set; } = new List<VTweenClass>();
+        ///<summary>Shared pools.</summary>
         public static ArrayPool<EventVRegister> regs = ArrayPool<EventVRegister>.Shared;
+        ///<summary>Running main worker.</summary>
         private static bool VWorkerIsRunning;
+        ///<summary>Singleton mono component</summary>
         public static VTweenMono vtmono { get; set; }
         public static void InitPool(int len){unusedTweens = new VTweenClass[len];}
         ///<summary>Gets registers.</summary>
@@ -41,17 +50,66 @@ namespace Breadnone.Extension
         public static int RegisterLength{get;set;} = 10;
         ///<summary>Resizes the size of pool. Default is 10.</summary>
         public static void FlushPools(int poolSize){InitPool(poolSize);}
+        ///<summary>Fast worker loop.</summary>
+        public static bool FastWorkerIsActive{get;set;}
+        ///<summary>Fast struct insertion to active list.</summary>
+        public static void FastStructInsertToActive(Action sevent, int id)
+        {
+            activeStructTweens.Add((sevent, id));
+            FastWorker();
+        }
+        ///<summary>Fast struct removal from active list.</summary>
+        public static void FastStructRemoveFromActive(Action sevent, int id)
+        {
+            for(int i = 0; i < activeStructTweens.Count; i++)
+            {
+                if(activeStructTweens[i].id == id)
+                {
+                    activeStructTweens.RemoveAt(i);
+                    break;
+                }
+            }
+        }
+        ///<summary>Fast worker main loop.</summary>
+        public static async void FastWorker()
+        {
+            if(FastWorkerIsActive)
+                return;
+
+            FastWorkerIsActive = true;
+
+            while(activeStructTweens.Count > 0)
+            {
+                await Task.Yield();
+
+                for (int i = activeStructTweens.Count; i-- > 0;)
+                {
+                    activeStructTweens[i].callback.Invoke();
+                }
+            }
+
+            FastWorkerIsActive = false;
+        }
+        public static void AbortFastWorker()
+        {
+            FastWorkerIsActive = false;
+
+            if(activeStructTweens.Count > 0)
+            {
+                activeStructTweens.Clear();
+            }
+        }
         ///<summary>Adds to active list.</summary>
         public static void InsertToActiveTween(VTweenClass vtween)
         {
-            vtween.ivcommon.state = TweenState.Tweening;
+            vtween.state = TweenState.Tweening;
             activeTweens.Add(vtween);
             VTweenWorker();
         }
         ///<summary>Removes from active list.</summary>
         public static void RemoveFromActiveTween(VTweenClass vtween)
         {
-            vtween.ivcommon.state = TweenState.None;
+            vtween.state = TweenState.None;
             InsertRemoveUnused(vtween);
             activeTweens.Remove(vtween);
         }
@@ -116,14 +174,14 @@ namespace Breadnone.Extension
         public static void PoolToPaused(VTweenClass vtween)
         {
             activeTweens.Remove(vtween);
-            vtween.ivcommon.state = TweenState.Paused;
+            vtween.state = TweenState.Paused;
             pausedTweens.Add(vtween);
         }
         ///<summary>Removes from the pause list</summary>
         public static void UnPoolPaused(VTweenClass vtween)
         {
             pausedTweens.Remove(vtween);
-            vtween.ivcommon.state = TweenState.Tweening;
+            vtween.state = TweenState.Tweening;
 
             if (!activeTweens.Contains(vtween))
                 activeTweens.Add(vtween);
@@ -140,7 +198,7 @@ namespace Breadnone.Extension
         {
             if (!all)
             {
-                if (vtween.ivcommon.state == TweenState.None || vtween.ivcommon.state == TweenState.Paused)
+                if (vtween.state == TweenState.None || vtween.state == TweenState.Paused)
                     return;
 
                 vtween.Pause();
@@ -151,7 +209,7 @@ namespace Breadnone.Extension
                 {
                     var t = VTweenManager.activeTweens[i];
 
-                    if (t == null || t.ivcommon.state == TweenState.Paused || t.ivcommon.state == TweenState.None)
+                    if (t == null || t.state == TweenState.Paused || t.state == TweenState.None)
                         return;
 
                     t.Pause();
@@ -163,7 +221,7 @@ namespace Breadnone.Extension
         {
             if (!all)
             {
-                if (vtween.ivcommon.state != TweenState.Paused)
+                if (vtween.state != TweenState.Paused)
                     return;
 
                 vtween.Resume();
@@ -185,7 +243,7 @@ namespace Breadnone.Extension
         {
             for (int i = VTweenManager.activeTweens.Count; i-- > 0;)
             {
-                if(VTweenManager.activeTweens[i].ivcommon.id == vid)
+                if(VTweenManager.activeTweens[i].vprops.id == vid)
                 {
                     var t = VTweenManager.activeTweens[i];
                     t.Cancel(state);
@@ -198,7 +256,7 @@ namespace Breadnone.Extension
             
             for(int i = 1; i < VTweenManager.pausedTweens.Count; i++)
             {
-                if(VTweenManager.unusedTweens[i].ivcommon.id == vid)
+                if(VTweenManager.unusedTweens[i].vprops.id == vid)
                 {
                     VTweenManager.unusedTweens[i].Resume();
                     break;
@@ -210,7 +268,7 @@ namespace Breadnone.Extension
         {
             if (!all)
             {
-                if (vtween.ivcommon.state != TweenState.None)
+                if (vtween.state != TweenState.None)
                     vtween.Cancel();
             }
             else
@@ -245,7 +303,7 @@ namespace Breadnone.Extension
             {
                 if (VTweenManager.unusedTweens[i] is T validT)
                 {
-                    validT.ivcommon.id = vid;
+                    validT.vprops.id = vid;
                     VTweenManager.unusedTweens[i] = null;                    
                     return validT;
                 }
@@ -255,7 +313,7 @@ namespace Breadnone.Extension
             VTweenManager.unusedTweens[0] = null;
             
             T nut = new T();
-            nut.ivcommon.id = vid;
+            nut.vprops.id = vid;
             return nut;
         }
     }

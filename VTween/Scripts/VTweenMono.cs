@@ -35,10 +35,12 @@ public class VTweenMono : MonoBehaviour
     private void ChangedActiveScene(Scene current, Scene next)
     {
         VTweenManager.AbortVTweenWorker();
+        VTweenManager.AbortFastWorker();
     }
     void OnApplicationQuit()
     {
         VTweenManager.AbortVTweenWorker();
+        VTweenManager.AbortFastWorker();
     }
 }
 

@@ -30,6 +30,7 @@ public class VStressTests : MonoBehaviour
 {
     [SerializeField] private TMP_Text labelCounter;
     [SerializeField] private List<GameObject> xTopObjects = new List<GameObject>();
+    [SerializeField] private List<Transform> transforms = new List<Transform>();
     [SerializeField] private Transform parent;
     [SerializeField] private List<GameObject> xBottomObjects = new List<GameObject>();
     [SerializeField] private int loopCount = 20;
@@ -44,6 +45,11 @@ public class VStressTests : MonoBehaviour
         cancelled = false;
         VTween.CancelAll();
         StartCoroutine(StartStressTest());
+    }
+    public void StartFastMoveStressTesting()
+    {
+        cancelled = false;
+        StartCoroutine(FastMoveStessTest()); 
     }
     [SerializeField] private bool useLimit = false;
     [SerializeField] private int spawnCycleAmount = 10;
@@ -74,6 +80,55 @@ public class VStressTests : MonoBehaviour
                     ggo.transform.SetParent(parent, true);
                     ggo.GetComponent<Image>().color = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
                     VTween.move(ggo, xTopObjects[UnityEngine.Random.Range(0, xTopObjects.Count - 1)].transform, UnityEngine.Random.Range(1.5f, 3f)).setLoop(loopCount).setEase(ease).setPingPong(pingPong).setDestroy(true);
+                    spawnCounter++;
+                    yield return null;
+
+                    if(cancelled)
+                        yield break;
+                }
+
+                labelCounter.SetText("TOTAL TWEENS : " + spawnCounter);
+            }
+
+            if(useLimit)
+            {
+                if(spawnCycleAmount == 0)
+                    yield break;
+            }
+        }
+    }
+    private IEnumerator FastMoveStessTest()
+    {        
+        yield return null;
+
+        while (!cancelled)
+        {           
+            spawnCycleAmount--;
+
+            for (int i = 0; i < xTopObjects.Count; i++)
+            {
+                var go = Instantiate(xTopObjects[i], xTopObjects[i].transform.position, xTopObjects[i].transform.rotation);
+                go.transform.SetParent(parent, true);
+                go.GetComponent<Image>().color = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
+                VTween.moveFast(go, xBottomObjects[UnityEngine.Random.Range(0, xBottomObjects.Count - 1)].transform.position, UnityEngine.Random.Range(1f, 3f), ease:ease, onComplete:()=>
+                {
+                    Destroy(go);
+                });
+                spawnCounter++;
+                yield return null;
+
+                if(cancelled)
+                    yield break;
+
+                for (int j = 0; j < xBottomObjects.Count; j++)
+                {
+                    var ggo = Instantiate(xBottomObjects[j], xBottomObjects[j].transform.position, xBottomObjects[j].transform.rotation);
+                    ggo.transform.SetParent(parent, true);
+                    ggo.GetComponent<Image>().color = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
+                    VTween.moveFast(ggo, xTopObjects[UnityEngine.Random.Range(0, xTopObjects.Count - 1)].transform.position, UnityEngine.Random.Range(1.5f, 3f), ease:ease, onComplete:()=>
+                    {
+                        Destroy(ggo);
+                    });
                     spawnCounter++;
                     yield return null;
 

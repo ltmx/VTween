@@ -33,7 +33,7 @@ namespace Breadnone.Extension
         bool unscaledTime;
         public void SetBaseValues(float time, Action act, bool unscaled = false)
         {
-            ivcommon.duration = time;
+            vprops.duration = time;
             callback = act;
             unscaledTime = unscaled;
             setOnComplete(act);
@@ -43,9 +43,9 @@ namespace Breadnone.Extension
             void evt()
             {
                 if (!unscaledTime)
-                    ivcommon.runningTime += Time.deltaTime;
+                    vprops.runningTime += Time.deltaTime;
                 else
-                    ivcommon.runningTime += Time.unscaledDeltaTime;
+                    vprops.runningTime += Time.unscaledDeltaTime;
             }
 
             ivcommon.AddRegister(new EventVRegister{callback = evt, id = 1});
@@ -60,7 +60,7 @@ namespace Breadnone.Extension
         ///<summary>Adds queue to the sequence.</summary>
         public VTweenQueue add(VTweenClass vtween)
         {
-            vtween.ivcommon.state = TweenState.None;
+            vtween.state = TweenState.None;
             vtweens.Add(vtween);
             return this;
         }
@@ -78,7 +78,7 @@ namespace Breadnone.Extension
                         if(vtweens[idx] is VTweenMove validt)
                         {
                             validt.UpdatePos();
-                            validt.ivcommon.state = TweenState.Tweening;
+                            validt.state = TweenState.Tweening;
                         }
                     }
 
@@ -89,7 +89,7 @@ namespace Breadnone.Extension
             if(oncomplete != null)
                 vtweens[vtweens.Count - 1].ivcommon.onComplete(oncomplete);
             
-            vtweens[0].ivcommon.state = TweenState.Tweening;
+            vtweens[0].state = TweenState.Tweening;
         }
         ///<summary>Stops the sequence.</summary>
         public VTweenQueue stop()
@@ -100,7 +100,7 @@ namespace Breadnone.Extension
             }
             return this;
         }
-        ///<summary>Will be executed upon completion.</summary>
+        ///<summary>Will be executed upon completion</summary>
         public VTweenQueue setOnComplete(Action callback)
         {
             oncomplete = callback;
