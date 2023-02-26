@@ -80,7 +80,9 @@ By default the pooled object is set to 10 instances. For heavy usages we can set
                 
 ```
  
- **Strut based tweens (move & follow)**
+ **Strut based tweens (move & follow)**  
+ A fire & forget struct based tween instance. Use this only when you don't need to cancel/pause the tween (thus FireAndForget). They're live on the stack.  
+ Note: The gameObject/VisualElement tied to this instance can't be destroyed while being active!
  ```
    //Fast & low allocation api. Allocated on the stack
    var t = VTween.moveFast(obj, target.position, duration, ease:Ease.Linear);
