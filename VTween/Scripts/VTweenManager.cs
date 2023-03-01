@@ -20,9 +20,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
-using UnityEngine;
-using System.Buffers;
-using System.Linq;
 
 namespace Breadnone.Extension
 {
@@ -31,35 +28,29 @@ namespace Breadnone.Extension
         ///<summary>Main active loop.</summary>
         public static List<VTweenClass> activeTweens { get; private set; } = new List<VTweenClass>();
         ///<summary>Active struct list.</summary>
-        public static List<(Action callback, int id)> activeStructTweens {get;set;} = new List<(Action, int)>();
+        public static List<(Action callback, Action cancel, int id)> activeStructTweens {get;set;} = new List<(Action, Action, int)>();
         ///<summary>Unused tweens.</summary>
         public static VTweenClass[] unusedTweens;
         ///<summary>Paused tweens.</summary>
         public static List<VTweenClass> pausedTweens { get; private set; } = new List<VTweenClass>();
-        ///<summary>Shared pools.</summary>
-        public static ArrayPool<EventVRegister> regs = ArrayPool<EventVRegister>.Shared;
         ///<summary>Running main worker.</summary>
         private static bool VWorkerIsRunning;
         ///<summary>Singleton mono component</summary>
         public static VTweenMono vtmono { get; set; }
         public static void InitPool(int len){unusedTweens = new VTweenClass[len];}
-        ///<summary>Gets registers.</summary>
-        public static EventVRegister[] RentRegister(int len){return regs.Rent(len);}
-        ///<summary>Returns the registers</summary>
-        public static void ReturnRegister(EventVRegister[] events){regs.Return(events, true);}
         public static int RegisterLength{get;set;} = 10;
         ///<summary>Resizes the size of pool. Default is 10.</summary>
         public static void FlushPools(int poolSize){InitPool(poolSize);}
         ///<summary>Fast worker loop.</summary>
         public static bool FastWorkerIsActive{get;set;}
         ///<summary>Fast struct insertion to active list.</summary>
-        public static void FastStructInsertToActive(Action sevent, int id)
+        public static void FastStructInsertToActive(Action callback, Action cancel, in int id)
         {
-            activeStructTweens.Add((sevent, id));
+            activeStructTweens.Add((callback, cancel, id));
             FastWorker();
         }
         ///<summary>Fast struct removal from active list.</summary>
-        public static void FastStructRemoveFromActive(Action sevent, int id)
+        public static void FastStructRemoveFromActive(in int id)
         {
             for(int i = 0; i < activeStructTweens.Count; i++)
             {
@@ -103,6 +94,7 @@ namespace Breadnone.Extension
         public static void InsertToActiveTween(VTweenClass vtween)
         {
             vtween.state = TweenState.Tweening;
+            vtween.AssingTime();
             activeTweens.Add(vtween);
             VTweenWorker();
         }
@@ -125,8 +117,6 @@ namespace Breadnone.Extension
                     return;
                 }
             }
-
-            vtween.renewRegister(false);
         }
         ///<summary>Acts as background worker.</summary>
         private static async void VTweenWorker()

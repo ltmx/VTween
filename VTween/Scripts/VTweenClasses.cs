@@ -25,114 +25,75 @@ using UnityEngine;
 using System;
 using UnityEngine.UIElements;
 using System.Collections.Generic;
+using System.Buffers;
 
 //Main VTween classes....
 namespace Breadnone.Extension
 {
     ///<summary>Base class of VTween. Shares common properties.</summary>
-    public class VTweenClass : IVCommonBase
+    public class VTweenClass
     {
         public VTProps vprops;
-        public IVCommonBase ivcommon;
-        public List<EventVRegister> registers;
+        public List<EventVRegister> registers = new List<EventVRegister>(4);
         public TweenState state;
         private Action exec;
         private Action oncomplete;
-        public Action runTime;
-        private Ease easeType;
-        public void renewRegister(bool rent)
+        public Ease easeType;
+        ///<summary>Assings scaled/unscaled time.</summary>
+        public void AssingTime(bool unscaled = false)
         {
-            if (rent)
-                registers = new List<EventVRegister>(3);
+            if(!unscaled)
+                onUpdate(ExecRunningTimeScaled);
             else
-            {
-                runTime -= ivcommon.ExecRunningTimeScaled;
-                runTime -= ivcommon.ExecRunningTimeUnscaled;
-            }
+                onUpdate(ExecRunningTimeUnscaled);
         }
-
+        
         ///<summary>Adds/removes invocation of a delegate.</summary>
-        void IVCommonBase.AddClearEvent(EventVRegister register, bool falseClearTrueAdd)
+        public void AddClearEvent(EventVRegister register, bool falseClearTrueAdd)
         {
-            if (register.id == 2)
-            {
-                if (falseClearTrueAdd) oncomplete += register.callback;
-                else oncomplete -= register.callback;
-            }
-            else if (register.id == 1)
+            if (register.id == 1)
             {
                 if (falseClearTrueAdd) exec += register.callback;
                 else exec -= register.callback;
             }
+            else if (register.id == 2)
+            {
+                if (falseClearTrueAdd) oncomplete += register.callback;
+                else oncomplete -= register.callback;
+            }
         }
         ///<summary>Assigns callback to onComplete, onUpdate, exec.</summary>
-        void IVCommonBase.AddRegister(EventVRegister register)
+        public void AddRegister(EventVRegister register)
         {
             registers.Add(register);
-            ivcommon.AddClearEvent(register, true);
+            AddClearEvent(register, true);
         }
         ///<summary>Registers init.</summary>
         public VTweenClass()
         {
             vprops = new VTProps();
-            ivcommon = this;
-            runTime = ivcommon.ExecRunningTimeScaled;
-            renewRegister(true);
         }
         public virtual void LoopReset() { }
-
         ///<summary>Executes scaled/unsclade runningTime.</summary>
-        void IVCommonBase.ExecRunningTimeScaled() { vprops.runningTime += Time.deltaTime; }
-        void IVCommonBase.ExecRunningTimeUnscaled() { vprops.runningTime += Time.unscaledDeltaTime; }
+        public void ExecRunningTimeScaled(){vprops.runningTime += Time.deltaTime;}
+        public void ExecRunningTimeUnscaled() { vprops.runningTime += Time.unscaledDeltaTime; }
 
-        ///<summary>Floating point ease impl.</summary>
-        float IVCommonBase.RunEaseTimeFloat(float start, float end)
-        {
-            var tm = vprops.runningTime / vprops.duration;
-            var res = VEasings.ValEase(easeType, start, end, tm);
-            runTime.Invoke();
-            return res;
-        }
-        ///<summary>Vector3 ease impl.</summary>
-        Vector3 IVCommonBase.RunEaseTimeVector3(Vector3 startPos, Vector3 endPos)
-        {
-            var tm = vprops.runningTime / vprops.duration;
-            //Float version- NOT OPTIMIZED! var res = new Vector3(VEasings.ValEase(easeType, startPos.x, endPos.x, tm), VEasings.ValEase(easeType, startPos.y, endPos.y, tm), VEasings.ValEase(easeType, startPos.z, endPos.z, tm));
-            runTime.Invoke();
-            return VEasings.ValEase(easeType, startPos, endPos, tm);
-        }
-        ///<summary>Vector4 ease impl.</summary>
-        Vector4 IVCommonBase.RunEaseTimeVector4(Vector4 startPos, Vector4 endPos)
-        {
-            var tm = vprops.runningTime / vprops.duration;
-            var res = new Vector4(VEasings.ValEase(easeType, startPos.x, endPos.x, tm), VEasings.ValEase(easeType, startPos.y, endPos.y, tm), VEasings.ValEase(easeType, startPos.z, endPos.z, tm), VEasings.ValEase(easeType, startPos.w, endPos.w, tm));
-            runTime.Invoke();
-            return res;
-        }
-        ///<summary>Vector2 ease impl</summary>
-        Vector2 IVCommonBase.RunEaseTimeVector2(Vector2 startPos, Vector2 endPos)
-        {
-            var tm = vprops.runningTime / vprops.duration;
-            var res = new Vector2(VEasings.ValEase(easeType, startPos.x, endPos.x, tm), VEasings.ValEase(easeType, startPos.y, endPos.y, tm));
-            runTime.Invoke();
-            return res;
-        }
         ///<summary>Amount of loops a single tween.</summary>
-        VTweenClass IVCommonBase.setLoop(int loopCount)
+        public VTweenClass onLoop(int loopCount)
         {
             vprops.loopAmount = loopCount;
             return this;
         }
 
         ///<summary>Back and forth, pingpong-like animation.</summary>
-        VTweenClass IVCommonBase.setPingPong(bool state)
+        public VTweenClass onPingPong(bool state)
         {
             vprops.pingpong = state;
             return this;
         }
 
         ///<summary>Ease function to be used with the tween.</summary>
-        VTweenClass IVCommonBase.setEase(Ease ease)
+        public VTweenClass onEase(Ease ease)
         {
             easeType = ease;
             return this;
@@ -152,16 +113,18 @@ namespace Breadnone.Extension
             exec.Invoke();
         }
         ///<summary>Will be executed at the very end, the next frame the tween completed</summary>
-        VTweenClass IVCommonBase.onComplete(Action callback)
+        public VTweenClass onComplete(Action callback)
         {
-            ivcommon.AddRegister(new EventVRegister { callback = callback, id = 2 });
+            var t = new EventVRegister { callback = callback, id = 2 };
+            AddRegister(t);
             return this;
         }
         ///<summary>Callback to execute every frame while tweening.</summary>
-        VTweenClass IVCommonBase.onUpdate(Action callback)
+        public VTweenClass onUpdate(Action callback)
         {
+            var t = new EventVRegister { callback = callback, id = 1 };
             //Keeps running while tweening.
-            ivcommon.AddRegister(new EventVRegister { callback = callback, id = 1 });
+            AddRegister(t);
             return this;
         }
         ///<summary>Cancels the tween, returns to pool.</summary>
@@ -188,7 +151,7 @@ namespace Breadnone.Extension
         ///<summary>Checks if tweening already was done or still tweening</summary>
         public void CheckIfFinished()
         {
-            if (vprops.loopAmount > 0)
+            if (vprops.loopAmount != vprops.loopCounter)
             {
                 vprops.loopCounter++;
 
@@ -254,19 +217,17 @@ namespace Breadnone.Extension
         {
             for (int i = 0; i < registers.Count; i++)
             {
-                ivcommon.AddClearEvent(registers[i], false);
+                var t = registers[i];
+                AddClearEvent(t, false);
             }
 
             if (removeFromActiveList)
-            {
                 VTweenManager.RemoveFromActiveTween(this);
-            }
+            
+            registers.Clear();
         }
         ///<summary>Sets to default for re-use purposes.</summary>
-        public void DefaultProperties()
-        {
-            vprops.SetDefault();
-        }
+        public void DefaultProperties(){vprops.SetDefault();}
         ///<summary>Checks if tweening.</summary>
         public bool IsTweening() { return state != TweenState.None; }
 
@@ -293,39 +254,43 @@ namespace Breadnone.Extension
     {
         private Vector3 destination;
         private Transform fromIns;
-        private IStyle fromInsUi;
         private Vector3 defaultPosition;
 
         ///<summary>Sets base values that aren't common properties of the base class.</summary>
-        public void SetBaseValues(Transform trans, IStyle istyle, Vector3 dest, Vector3 defPos, in float time)
+        public void SetBaseValues(Transform trans, ref Vector3 dest, ref float time)
         {
             destination = dest;
             fromIns = trans;
-            fromInsUi = istyle;
-            defaultPosition = defPos;
+            defaultPosition = trans.position;
             vprops.duration = time;
 
-            void callback() { fromIns.position = ivcommon.RunEaseTimeVector3(defaultPosition, destination); }
-            void callbackLocal() { fromIns.localPosition = ivcommon.RunEaseTimeVector3(defaultPosition, destination); }
+            void callback() {fromIns.position = Utilv.Vec3Lerp(easeType, ref defaultPosition, ref destination, vprops.runningTime / vprops.duration); }
+            void callbackLocal() { fromIns.localPosition = Utilv.Vec3Lerp(easeType, ref defaultPosition, ref destination, vprops.runningTime / vprops.duration); }
 
-            void callbackUi()
+            if (!vprops.isLocal)
             {
-                var tmp = ivcommon.RunEaseTimeVector3(defaultPosition, destination);
-                fromInsUi.translate = new Translate(tmp.x, tmp.y, tmp.z);
-            }
-
-            if (fromIns is object)
-            {
-                if (!vprops.isLocal)
-                    ivcommon.AddRegister(new EventVRegister { callback = callback, id = 1 });
-                else
-                    ivcommon.AddRegister(new EventVRegister { callback = callbackLocal, id = 1 });
+                var t = new EventVRegister { callback = callback, id = 1 };
+                AddRegister(t);
             }
             else
             {
-                ivcommon.AddRegister(new EventVRegister { callback = callbackUi, id = 1 });
+                var t = new EventVRegister { callback = callbackLocal, id = 1 };
+                AddRegister(t);
             }
 
+            Action oncomp = ()=> 
+            {
+                if(vprops.pingpong)
+                {
+                    fromIns.position = defaultPosition;
+                }
+                else
+                {
+                    fromIns.position = destination;
+                }
+            };
+
+            onComplete(oncomp);
             VTweenManager.InsertToActiveTween(this);
         }
 
@@ -340,6 +305,8 @@ namespace Breadnone.Extension
                     {
                         fromIns.transform.position = defaultPosition;
                     }
+                    else
+                        fromIns.transform.position = destination;
                 }
                 else
                 {
@@ -347,51 +314,40 @@ namespace Breadnone.Extension
                     {
                         fromIns.transform.localPosition = defaultPosition;
                     }
+                    else    
+                        fromIns.transform.localPosition = destination;
                 }
             }
-            else if (fromInsUi is object)
-            {
-                if (!vprops.pingpong)
-                    fromInsUi.translate = new Translate(defaultPosition.x, defaultPosition.y, defaultPosition.z);
-            }
 
-            if (vprops.pingpong)
-            {
-                var dest = destination;
-                destination = defaultPosition;
-                defaultPosition = dest;
-            }
+            if (vprops.pingpong){Utilv.SwapRefs<Vector3>(ref destination, ref defaultPosition);}
         }
+        ///<summary>Updates position of gameObject when chaining. Only for chaining purposes.</summary>
         public void UpdatePos()
         {
             for (int i = 0; i < registers.Count; i++)
             {
                 if (registers[i].id == 1)
                 {
-                    ivcommon.AddClearEvent(registers[i], false);
+                    var t = registers[i];
+                    AddClearEvent(t, false);
                     break;
                 }
             }
 
             vprops.runningTime = 0;
             VTweenManager.activeTweens.Remove(this);
-            SetBaseValues(fromIns, fromInsUi, destination, fromIns.transform.position, vprops.duration);
+            var pos = fromIns.transform.position;
+            var dur = vprops.duration;
+            SetBaseValues(fromIns, ref destination, ref dur);
         }
 
         ///<summary>Repositioning initial position of object.</summary>
         public VTweenMove setFrom(Vector3 fromPosition)
         {
-            if (fromIns is object)
-            {
-                if (!vprops.isLocal)
-                    fromIns.position = fromPosition;
-                else
-                    fromIns.localPosition = fromPosition;
-            }
-            else if (fromInsUi is object)
-            {
-                fromInsUi.translate = new Translate(fromPosition.x, fromPosition.y, fromPosition.z);
-            }
+            if (!vprops.isLocal)
+                fromIns.position = fromPosition;
+            else
+                fromIns.localPosition = fromPosition;
 
             defaultPosition = fromPosition;
             return this;
@@ -400,7 +356,8 @@ namespace Breadnone.Extension
         public VTweenMove setLookAt(Vector3 targetToLookAt)
         {
             void evt() { fromIns.transform.LookAt(targetToLookAt); }
-            ivcommon.AddRegister(new EventVRegister { callback = evt, id = 1 });
+            var t = new EventVRegister { callback = evt, id = 1 };
+            AddRegister(t);
             return this;
         }
         ///<summary>Destroys gameObject when completed. VisualElements will be removed from parents hierarchy.</summary>
@@ -409,21 +366,94 @@ namespace Breadnone.Extension
             if (!state)
                 return this;
 
-            if (fromIns is object)
-            {
-                void callback() { GameObject.Destroy(fromIns.gameObject); }
-                ivcommon.AddRegister(new EventVRegister { callback = callback, id = 2 });
-            }
-            else
-            {
-                void callback() { (fromInsUi as VisualElement).RemoveFromHierarchy(); }
-                ivcommon.AddRegister(new EventVRegister { callback = callback, id = 2 });
-            }
-
+            void callback() { GameObject.Destroy(fromIns.gameObject); }
+            var t = new EventVRegister { callback = callback, id = 2 };
+            AddRegister(t);
             return this;
         }
     }
 
+    ///<summary>Move class. Moves object to target position.</summary>
+    public class VTweenMoveUI : VClass<VTweenMoveUI>
+    {
+        private Vector3 destination;
+        private VisualElement fromInsUi;
+        private Vector3 defaultPosition;
+
+        ///<summary>Sets base values that aren't common properties of the base class.</summary>
+        public void SetBaseValues(VisualElement istyle, ref Vector3 dest, ref float time)
+        {
+            destination = dest;
+            fromInsUi = istyle;
+            defaultPosition = istyle.transform.position;
+            vprops.duration = time;
+
+            void callbackUi()
+            {
+                var tmp = Utilv.Vec3Lerp(easeType, ref defaultPosition, ref destination, vprops.runningTime / vprops.duration);
+                fromInsUi.style.translate = new Translate(tmp.x, tmp.y, tmp.z);
+            }
+
+            var t = new EventVRegister { callback = callbackUi, id = 1 };
+            AddRegister(t);
+            VTweenManager.InsertToActiveTween(this);
+        }
+
+        ///<summary>Shuffling the to/from properties.</summary>
+        public override void LoopReset()
+        {
+            if (!vprops.pingpong)
+                fromInsUi.style.translate = new Translate(defaultPosition.x, defaultPosition.y, defaultPosition.z);
+            else
+                fromInsUi.style.translate = new Translate(destination.x, destination.y, destination.z);
+
+            if (vprops.pingpong)
+            {
+                Utilv.SwapRefs<Vector3>(ref destination, ref defaultPosition);
+            }
+        }
+        public void UpdatePos()
+        {
+            for (int i = 0; i < registers.Count; i++)
+            {
+                if (registers[i].id == 1)
+                {
+                    var t = registers[i];
+                    AddClearEvent(t, false);
+                    break;
+                }
+            }
+
+            vprops.runningTime = 0;
+            VTweenManager.activeTweens.Remove(this);
+            var dur = vprops.duration;
+            SetBaseValues(fromInsUi, ref destination, ref dur);
+        }
+
+        ///<summary>Repositioning initial position of object.</summary>
+        public VTweenMoveUI setFrom(Vector3 fromPosition)
+        {
+            fromInsUi.style.translate = new Translate(fromPosition.x, fromPosition.y, fromPosition.z);
+            defaultPosition = fromPosition;
+            return this;
+        }
+        ///<summary>Sets target to look at while moving.</summary>
+        public VTweenMoveUI setLookAt(Vector3 targetToLookAt)
+        {
+            return this;
+        }
+        ///<summary>Destroys gameObject when completed. VisualElements will be removed from parents hierarchy.</summary>
+        public override VTweenMoveUI setDestroy(bool state)
+        {
+            if (!state)
+                return this;
+
+            void callback() { ((VisualElement)fromInsUi).RemoveFromHierarchy(); }
+            var t = new EventVRegister { callback = callback, id = 2 };
+            AddRegister(t);
+            return this;
+        }
+    }
     ///<summary>Rotates object</summary>
     public class VTweenRotate : VClass<VTweenRotate>
     {
@@ -434,7 +464,7 @@ namespace Breadnone.Extension
         private Quaternion currentRotation;
 
         ///<summary>Sets base values that aren't common properties of the base class.</summary>
-        public void SetBaseValues(Transform trans, ITransform itrans, in float angle, Vector3 direction, in float time)
+        public void SetBaseValues(Transform trans, ITransform itrans, float angle, Vector3 direction, float time)
         {
             transform = trans;
             degreeAngle = angle;
@@ -454,20 +484,29 @@ namespace Breadnone.Extension
                 currentRotation = itrans.rotation * Quaternion.AngleAxis(degreeAngle, direction);
             }
 
-            void callback() { trans.rotation = Quaternion.AngleAxis(ivcommon.RunEaseTimeFloat(0f, degreeAngle), direction); }
-            void callbackLocal() { trans.localRotation = Quaternion.AngleAxis(ivcommon.RunEaseTimeFloat(0f, degreeAngle), direction); }
-            void callbackUi() { itrans.rotation = Quaternion.AngleAxis(ivcommon.RunEaseTimeFloat(0f, degreeAngle), direction); }
+            var zero = 0f;
+            void callback() { trans.rotation = Quaternion.AngleAxis(Utilv.FloatLerp(easeType, ref zero, ref degreeAngle, vprops.runningTime / vprops.duration), direction); }
+            void callbackLocal() { trans.localRotation = Quaternion.AngleAxis(Utilv.FloatLerp(easeType, ref zero, ref degreeAngle, vprops.runningTime / vprops.duration), direction); }
+            void callbackUi() { itrans.rotation = Quaternion.AngleAxis(Utilv.FloatLerp(easeType, ref zero, ref degreeAngle, vprops.runningTime / vprops.duration), direction); }
 
             if (trans is object)
             {
                 if (!vprops.isLocal)
-                    ivcommon.AddRegister(new EventVRegister { callback = callback, id = 1 });
+                {
+                    var t = new EventVRegister { callback = callback, id = 1 };
+                    AddRegister(t);
+                }
+
                 else
-                    ivcommon.AddRegister(new EventVRegister { callback = callbackLocal, id = 1 });
+                {
+                    var t = new EventVRegister { callback = callbackLocal, id = 1 };
+                    AddRegister(t);
+                }
             }
             else
             {
-                ivcommon.AddRegister(new EventVRegister { callback = callbackUi, id = 1 });
+                var t = new EventVRegister { callback = callbackUi, id = 1 };
+                AddRegister(t);
             }
 
             VTweenManager.InsertToActiveTween(this);
@@ -478,9 +517,13 @@ namespace Breadnone.Extension
             if (transform is object)
             {
                 if (!vprops.isLocal)
+                {
                     transform.transform.rotation = currentRotation;
+                }
                 else
+                {
                     transform.transform.localRotation = currentRotation;
+                }
             }
             else if (itransform is object)
             {
@@ -509,7 +552,7 @@ namespace Breadnone.Extension
                 }
             }
 
-            ivcommon.onUpdate(Upd);
+            onUpdate(Upd);
             return this;
         }
         ///<summary>Repositioning initial position of object.</summary>
@@ -544,12 +587,14 @@ namespace Breadnone.Extension
             if (transform is object)
             {
                 void callback() { GameObject.Destroy(transform.gameObject); }
-                ivcommon.AddRegister(new EventVRegister { callback = callback, id = 2 });
+                var t = new EventVRegister { callback = callback, id = 2 };
+                AddRegister(t);
             }
             else
             {
                 void callback() { (itransform as VisualElement).RemoveFromHierarchy(); }
-                ivcommon.AddRegister(new EventVRegister { callback = callback, id = 2 });
+                var t = new EventVRegister { callback = callback, id = 2 };
+                AddRegister(t);
             }
             return this;
         }
@@ -563,7 +608,7 @@ namespace Breadnone.Extension
         private string refName;
 
         ///<summary>Sets base values that aren't common properties of the base class.</summary>
-        public void SetBaseValues(Material material, string shaderReferenceName, in float fromValue, in float toValue, in float time)
+        public void SetBaseValues(Material material, string shaderReferenceName, float fromValue, float toValue, float time)
         {
             vprops.duration = time;
             from = fromValue;
@@ -578,10 +623,11 @@ namespace Breadnone.Extension
 
             void callback()
             {
-                material.SetFloat(shaderReferenceName, ivcommon.RunEaseTimeFloat(from, to));
+                material.SetFloat(shaderReferenceName, Utilv.FloatLerp(easeType, ref from, ref to, vprops.runningTime / vprops.duration));
             }
 
-            ivcommon.AddRegister(new EventVRegister { callback = callback, id = 1 });
+            var t = new EventVRegister { callback = callback, id = 1 };
+            AddRegister(t);
             VTweenManager.InsertToActiveTween(this);
         }
         ///<summary>Resets properties shuffle the destination</summary>
@@ -593,9 +639,7 @@ namespace Breadnone.Extension
             }
             else
             {
-                var dest = to;
-                to = from;
-                from = dest;
+                Utilv.SwapRefs<float>(ref to, ref from);
             }
         }
     }
@@ -608,7 +652,7 @@ namespace Breadnone.Extension
         private string refName;
 
         ///<summary>Sets base values that aren't common properties of the base class.</summary>
-        public void SetBaseValues(Material material, string shaderReferenceName, in int fromValue, in int toValue, in float time)
+        public void SetBaseValues(Material material, string shaderReferenceName, int fromValue, int toValue, float time)
         {
             vprops.duration = time;
             from = fromValue;
@@ -623,10 +667,14 @@ namespace Breadnone.Extension
 
             void callback()
             {
-                material.SetInt(shaderReferenceName, (int)ivcommon.RunEaseTimeFloat(from, to));
+                var frm = (float)from;
+                var tt = (float)to;
+
+                material.SetInt(shaderReferenceName, (int)Utilv.FloatLerp(easeType, ref frm, ref tt, vprops.runningTime / vprops.duration));
             }
 
-            ivcommon.AddRegister(new EventVRegister { callback = callback, id = 1 });
+            var t = new EventVRegister { callback = callback, id = 1 };
+            AddRegister(t);
             VTweenManager.InsertToActiveTween(this);
         }
         ///<summary>Resets properties shuffle the destination</summary>
@@ -653,7 +701,7 @@ namespace Breadnone.Extension
         private string refName;
 
         ///<summary>Sets Vector3 reference in the shader.</summary>
-        public void SetBaseValues(Material material, string shaderReferenceName, Vector3 fromValue, Vector3 toValue, in float time)
+        public void SetBaseValues(Material material, string shaderReferenceName, Vector3 fromValue, Vector3 toValue, float time)
         {
             vprops.duration = time;
             from = fromValue;
@@ -668,10 +716,11 @@ namespace Breadnone.Extension
 
             void callback()
             {
-                material.SetVector(shaderReferenceName, ivcommon.RunEaseTimeVector3(from, to));
+                material.SetVector(shaderReferenceName, Utilv.Vec3Lerp(easeType, ref from, ref to, vprops.runningTime / vprops.duration));
             }
 
-            ivcommon.AddRegister(new EventVRegister { callback = callback, id = 1 });
+            var t = new EventVRegister { callback = callback, id = 1 };
+            AddRegister(t);
             VTweenManager.InsertToActiveTween(this);
         }
         ///<summary>Interpolates Vector3 reference in the shader/material</summary>
@@ -683,9 +732,7 @@ namespace Breadnone.Extension
             }
             else if (vprops.pingpong)
             {
-                var dest = to;
-                to = from;
-                from = dest;
+                Utilv.SwapRefs<Vector3>(ref to, ref from);
             }
         }
     }
@@ -698,7 +745,7 @@ namespace Breadnone.Extension
         private string refName;
 
         ///<summary>Sets Vector3 reference in the shader.</summary>
-        public void SetBaseValues(Material material, string shaderReferenceName, Vector2 fromValue, Vector2 toValue, in float time)
+        public void SetBaseValues(Material material, string shaderReferenceName, Vector2 fromValue, Vector2 toValue, float time)
         {
             vprops.duration = time;
             from = fromValue;
@@ -713,10 +760,11 @@ namespace Breadnone.Extension
 
             void callback()
             {
-                material.SetVector(shaderReferenceName, ivcommon.RunEaseTimeVector2(from, to));
+                material.SetVector(shaderReferenceName, Utilv.Vec2Lerp(easeType, ref from, ref to, vprops.runningTime/vprops.duration));
             }
 
-            ivcommon.AddRegister(new EventVRegister { callback = callback, id = 1 });
+            var t = new EventVRegister { callback = callback, id = 1 };
+            AddRegister(t);
             VTweenManager.InsertToActiveTween(this);
         }
         ///<summary>Interpolates Vector3 reference in the shader/material</summary>
@@ -728,9 +776,7 @@ namespace Breadnone.Extension
             }
             else if (vprops.pingpong)
             {
-                var dest = to;
-                to = from;
-                from = dest;
+                Utilv.SwapRefs<Vector2>(ref to, ref from);
             }
         }
     }
@@ -742,7 +788,7 @@ namespace Breadnone.Extension
         private float runningValue;
 
         ///<summary>Sets base values that aren't common properties of the base class.</summary>
-        public void SetBaseValues(in float fromValue, in float toValue, in float time, Action<float> callbackEvent)
+        public void SetBaseValues(float fromValue, float toValue, float time, Action<float> callbackEvent)
         {
             vprops.duration = time;
             from = fromValue;
@@ -750,7 +796,7 @@ namespace Breadnone.Extension
 
             void callback()
             {
-                runningValue = ivcommon.RunEaseTimeFloat(from, to);
+                runningValue = Utilv.FloatLerp(easeType, ref from, ref to, vprops.runningTime / vprops.duration);
 
                 if (callbackEvent is object)
                 {
@@ -759,7 +805,7 @@ namespace Breadnone.Extension
             }
 
             var t = new EventVRegister { callback = callback, id = 1 };
-            ivcommon.AddRegister(t);
+            AddRegister(t);
             VTweenManager.InsertToActiveTween(this);
         }
         ///<summary>Resets properties shuffle the destination</summary>
@@ -771,9 +817,7 @@ namespace Breadnone.Extension
             }
             else if (vprops.pingpong)
             {
-                var dest = to;
-                to = from;
-                from = dest;
+                Utilv.SwapRefs<float>(ref to, ref from);
                 runningValue = from;
             }
         }
@@ -786,7 +830,7 @@ namespace Breadnone.Extension
         private Vector2 runningValue;
 
         ///<summary>Sets base values that aren't common properties of the base class.</summary>
-        public void SetBaseValues(Vector2 fromValue, Vector2 toValue, in float time, Action<Vector2> callbackEvent)
+        public void SetBaseValues(Vector2 fromValue, Vector2 toValue, float time, Action<Vector2> callbackEvent)
         {
             runningValue = Vector2.zero;
             vprops.duration = time;
@@ -795,7 +839,7 @@ namespace Breadnone.Extension
 
             void callback()
             {
-                runningValue = ivcommon.RunEaseTimeVector2(from, to);
+                runningValue = Utilv.Vec2Lerp(easeType, ref from, ref to, vprops.runningTime/vprops.duration);
 
                 if (callbackEvent is object)
                 {
@@ -804,7 +848,7 @@ namespace Breadnone.Extension
             }
 
             var t = new EventVRegister { callback = callback, id = 1 };
-            ivcommon.AddRegister(t);
+            AddRegister(t);
             VTweenManager.InsertToActiveTween(this);
         }
         ///<summary>Resets properties shuffle the destination</summary>
@@ -816,9 +860,7 @@ namespace Breadnone.Extension
             }
             else if (vprops.pingpong)
             {
-                var dest = to;
-                to = from;
-                from = dest;
+                Utilv.SwapRefs<Vector2>(ref to, ref from);
                 runningValue = from;
             }
         }
@@ -831,7 +873,7 @@ namespace Breadnone.Extension
         private Vector3 runningValue;
 
         ///<summary>Sets base values that aren't common properties of the base class.</summary>
-        public void SetBaseValues(Vector3 fromValue, Vector3 toValue, in float time, Action<Vector3> callbackEvent)
+        public void SetBaseValues(Vector3 fromValue, Vector3 toValue, float time, Action<Vector3> callbackEvent)
         {
             runningValue = Vector3.zero;
             vprops.duration = time;
@@ -840,7 +882,7 @@ namespace Breadnone.Extension
 
             void callback()
             {
-                runningValue = ivcommon.RunEaseTimeVector3(from, to);
+                runningValue = Utilv.Vec3Lerp(easeType, ref from, ref to, vprops.runningTime / vprops.duration);
 
                 if (callbackEvent is object)
                 {
@@ -849,7 +891,7 @@ namespace Breadnone.Extension
             }
 
             var t = new EventVRegister { callback = callback, id = 1 };
-            ivcommon.AddRegister(t);
+            AddRegister(t);
             VTweenManager.InsertToActiveTween(this);
         }
         ///<summary>Resets properties shuffle the destination</summary>
@@ -861,9 +903,7 @@ namespace Breadnone.Extension
             }
             else if (vprops.pingpong)
             {
-                var dest = to;
-                to = from;
-                from = dest;
+                Utilv.SwapRefs<Vector3>(ref to, ref from);
                 runningValue = from;
             }
         }
@@ -876,7 +916,7 @@ namespace Breadnone.Extension
         private Vector4 runningValue;
 
         ///<summary>Sets base values that aren't common properties of the base class.</summary>
-        public void SetBaseValues(Vector4 fromValue, Vector4 toValue, in float time, Action<Vector4> callbackEvent)
+        public void SetBaseValues(Vector4 fromValue, Vector4 toValue, float time, Action<Vector4> callbackEvent)
         {
             runningValue = Vector4.zero;
             vprops.duration = time;
@@ -885,7 +925,7 @@ namespace Breadnone.Extension
 
             void callback()
             {
-                runningValue = ivcommon.RunEaseTimeVector4(from, to);
+                runningValue = Utilv.Vec4Lerp(easeType, ref from, ref to, vprops.runningTime/vprops.duration);
 
                 if (callbackEvent is object)
                 {
@@ -894,7 +934,7 @@ namespace Breadnone.Extension
             }
 
             var t = new EventVRegister { callback = callback, id = 1 };
-            ivcommon.AddRegister(t);
+            AddRegister(t);
             VTweenManager.InsertToActiveTween(this);
         }
         ///<summary>Resets properties shuffle the destination</summary>
@@ -906,9 +946,7 @@ namespace Breadnone.Extension
             }
             else if (vprops.pingpong)
             {
-                var dest = to;
-                to = from;
-                from = dest;
+                Utilv.SwapRefs<Vector4>(ref to, ref from);
                 runningValue = from;
             }
         }
@@ -922,7 +960,7 @@ namespace Breadnone.Extension
         private IStyle itransform;
 
         ///<summary>Sets base values that aren't common properties of the base class.</summary>
-        public void SetBaseValues(Transform trans, IStyle itrans, Vector3 destScale, Vector3 defScale, in float time)
+        public void SetBaseValues(Transform trans, IStyle itrans, Vector3 destScale, Vector3 defScale, float time)
         {
             transform = trans;
             itransform = itrans;
@@ -930,13 +968,19 @@ namespace Breadnone.Extension
             targetScale = destScale;
             vprops.duration = time;
 
-            void callback() { transform.localScale = ivcommon.RunEaseTimeVector3(defaultScale, targetScale); }
-            void callbackUi() { itransform.scale = new Scale(ivcommon.RunEaseTimeVector3(defaultScale, targetScale)); }
-
+            void callback() { transform.localScale = Utilv.Vec3Lerp(easeType, ref defaultScale, ref targetScale, vprops.runningTime / vprops.duration); }
+            void callbackUi() { itransform.scale = new Scale(Utilv.Vec3Lerp(easeType, ref defaultScale, ref targetScale, vprops.runningTime / vprops.duration)); }
+            
             if (transform is object)
-                ivcommon.AddRegister(new EventVRegister { callback = callback, id = 1 });
+            {
+                var t = new EventVRegister { callback = callback, id = 1 };
+                AddRegister(t);
+            }
             else
-                ivcommon.AddRegister(new EventVRegister { callback = callbackUi, id = 1 });
+            {
+                var t = new EventVRegister { callback = callbackUi, id = 1 };
+                AddRegister(t);
+            }
 
             VTweenManager.InsertToActiveTween(this);
         }
@@ -956,9 +1000,7 @@ namespace Breadnone.Extension
             }
             else
             {
-                var dest = targetScale;
-                targetScale = defaultScale;
-                defaultScale = dest;
+                Utilv.SwapRefs<Vector3>(ref targetScale, ref defaultScale);
             }
         }
         ///<summary>Destroys gameObject/VisualElement on completion.</summary>
@@ -970,12 +1012,14 @@ namespace Breadnone.Extension
             if (transform is object)
             {
                 void callback() { GameObject.Destroy(transform.gameObject); }
-                ivcommon.AddRegister(new EventVRegister { callback = callback, id = 2 });
+                var t = new EventVRegister { callback = callback, id = 2 };
+                AddRegister(t);
             }
             else
             {
-                void callback() { (itransform as VisualElement).RemoveFromHierarchy(); }
-                ivcommon.AddRegister(new EventVRegister { callback = callback, id = 2 });
+                void callback() { ((VisualElement)itransform).RemoveFromHierarchy(); }
+                var t = new EventVRegister { callback = callback, id = 2 };
+                AddRegister(t);
             }
 
             return this;
@@ -990,7 +1034,7 @@ namespace Breadnone.Extension
         private float toValue;
 
         ///<summary>Sets base values that aren't common properties of the base class.</summary>
-        public void SetBaseValues(CanvasGroup canvas, VisualElement visualelement, float from, float to, in float time)
+        public void SetBaseValues(CanvasGroup canvas, VisualElement visualelement, float from, float to, float time)
         {
             canvyg = canvas;
             visualElement = visualelement;
@@ -1007,18 +1051,24 @@ namespace Breadnone.Extension
 
             void callback()
             {
-                canvyg.alpha = ivcommon.RunEaseTimeFloat(fromValue, toValue);
+                canvyg.alpha = Utilv.FloatLerp(easeType, ref fromValue, ref toValue, vprops.runningTime / vprops.duration);
             }
 
             void callbackUi()
             {
-                visualElement.style.opacity = ivcommon.RunEaseTimeFloat(fromValue, toValue);
+                visualElement.style.opacity = Utilv.FloatLerp(easeType, ref fromValue, ref toValue, vprops.runningTime / vprops.duration);
             }
 
             if (canvyg is object)
-                ivcommon.AddRegister(new EventVRegister { callback = callback, id = 1 });
+            {
+                var t = new EventVRegister { callback = callback, id = 1 };
+                AddRegister(t);
+            }
             else
-                ivcommon.AddRegister(new EventVRegister { callback = callbackUi, id = 1 });
+            {
+                var t = new EventVRegister { callback = callbackUi, id = 1 };
+                AddRegister(t);
+            }
 
             VTweenManager.InsertToActiveTween(this);
         }
@@ -1038,9 +1088,7 @@ namespace Breadnone.Extension
             }
             else
             {
-                var dest = toValue;
-                toValue = fromValue;
-                fromValue = dest;
+                Utilv.SwapRefs<float>(ref toValue, ref fromValue);
             }
         }
     }
@@ -1053,7 +1101,7 @@ namespace Breadnone.Extension
         private Color toValue;
 
         ///<summary>Sets base values that aren't common properties of the base class.</summary>
-        public void SetBaseValues(UnityEngine.UI.Image uiimage, VisualElement visualelement, Color from, Color to, in float time)
+        public void SetBaseValues(UnityEngine.UI.Image uiimage, VisualElement visualelement, Color from, Color to, float time)
         {
             image = uiimage;
             visualElement = visualelement;
@@ -1065,18 +1113,27 @@ namespace Breadnone.Extension
             {
                 Vector4 vecFrom = fromValue;
                 Vector4 vecTo = toValue;
-                image.color = ivcommon.RunEaseTimeVector4(fromValue, toValue);
+                image.color = Utilv.Vec4Lerp(easeType, ref vecFrom, ref vecTo , vprops.runningTime/vprops.duration);
             }
 
             void callbackUi()
             {
-                visualElement.style.backgroundColor = new StyleColor(ivcommon.RunEaseTimeVector4(fromValue, toValue));
+                Vector4 vecFrom = fromValue;
+                Vector4 vecTo = toValue;
+                visualElement.style.backgroundColor = new StyleColor(Utilv.Vec4Lerp(easeType, ref vecFrom, ref vecTo , vprops.runningTime/vprops.duration));
             }
 
             if (image is object)
-                ivcommon.AddRegister(new EventVRegister { callback = callback, id = 1 });
+            {
+                var t = new EventVRegister { callback = callback, id = 1 };
+                AddRegister(t);
+            }
             else
-                ivcommon.AddRegister(new EventVRegister { callback = callbackUi, id = 1 });
+            {
+                var t = new EventVRegister { callback = callbackUi, id = 1 };
+                AddRegister(t);
+            }
+
             VTweenManager.InsertToActiveTween(this);
         }
         ///<summary>Resets properties shuffle the destination</summary>
@@ -1095,9 +1152,7 @@ namespace Breadnone.Extension
             }
             else
             {
-                var dest = toValue;
-                toValue = fromValue;
-                fromValue = dest;
+                Utilv.SwapRefs<Color>(ref toValue, ref fromValue);
             }
         }
     }
@@ -1112,7 +1167,7 @@ namespace Breadnone.Extension
         private int prevFrame;
 
         ///<summary>Sets base values that aren't common properties of the base class. Default sets to 12 frame/second. Use setFps for custom frame per second.</summary>
-        public void SetBaseValues(UnityEngine.UI.Image[] legacyimages, UnityEngine.UIElements.Image[] uiimages, in int? framePerSecond, in float time)
+        public void SetBaseValues(UnityEngine.UI.Image[] legacyimages, UnityEngine.UIElements.Image[] uiimages, int? framePerSecond, float time)
         {
             vprops.duration = time;
             images = legacyimages;
@@ -1220,9 +1275,17 @@ namespace Breadnone.Extension
             }
 
             if (images is object)
-                ivcommon.AddRegister(new EventVRegister { callback = callback, id = 1 });
+            {
+                var t = new EventVRegister { callback = callback, id = 1 };
+                AddRegister(t);
+            }
+
             else
-                ivcommon.AddRegister(new EventVRegister { callback = callbackUi, id = 1 });
+            {
+                var t = new EventVRegister { callback = callbackUi, id = 1 };
+                AddRegister(t);
+            }
+
             VTweenManager.InsertToActiveTween(this);
         }
         ///<summary>Sets frame-per-second used for the timing.</summary>
@@ -1242,7 +1305,7 @@ namespace Breadnone.Extension
             {
                 void act() { SetColor(false); };
                 var tx = new EventVRegister { callback = act, id = 2 };
-                ivcommon.AddRegister(tx);
+                AddRegister(tx);
             }
 
             return this;
@@ -1255,7 +1318,7 @@ namespace Breadnone.Extension
         private float speedTime;
 
         ///<summary>Sets base values that aren't common properties of the base class.</summary>
-        public void SetBaseValues(Transform trans, Transform targetTransform, Vector3 smoothness, in float speed)
+        public void SetBaseValues(Transform trans, Transform targetTransform, Vector3 smoothness, float speed)
         {
             smoothTime = smoothness;
             speedTime = speed;
@@ -1265,7 +1328,8 @@ namespace Breadnone.Extension
                 trans.position = Vector3.SmoothDamp(trans.position, targetTransform.position, ref smoothTime, speedTime);
             }
 
-            ivcommon.AddRegister(new EventVRegister { callback = callback, id = 1 });
+            var t = new EventVRegister { callback = callback, id = 1 };
+            AddRegister(t);
             VTweenManager.InsertToActiveTween(this);
         }
     }
@@ -1277,48 +1341,32 @@ namespace Breadnone.Extension
         Tweening,
         None
     }
-    ///<summary>Base class common properties. Will be declared explicitly the class.</summary>
-    public interface IVCommonBase
-    {
-        public VTweenClass onComplete(Action callback);
-        public VTweenClass onUpdate(Action callback);
-        public VTweenClass setPingPong(bool state);
-        public VTweenClass setEase(Ease ease);
-        public VTweenClass setLoop(int loopCount);
-        public void AddRegister(EventVRegister register);
-        public float RunEaseTimeFloat(float start, float end);
-        public Vector3 RunEaseTimeVector3(Vector3 startPos, Vector3 endPos);
-        public Vector4 RunEaseTimeVector4(Vector4 startPos, Vector4 endPos);
-        public Vector2 RunEaseTimeVector2(Vector2 startPos, Vector2 endPos);
-        public void AddClearEvent(EventVRegister register, bool falseClearTrueAdd);
-        public void ExecRunningTimeScaled();
-        public void ExecRunningTimeUnscaled();
-    }
+
     ///<summary>Base abstract class.</summary>
     public abstract class VClass<T> : VTweenClass where T : VTweenClass
     {
         ///<summary>Will be called when tweening was completed</summary>
         public T setOnComplete(Action callback)
         {
-            this.ivcommon.onComplete(callback);
+            this.onComplete(callback);
             return this as T;
         }
         ///<summary>Will be called every frame while tweening.</summary>
         public T setOnUpdate(Action callback)
         {
-            this.ivcommon.onUpdate(callback);
+            this.onUpdate(callback);
             return this as T;
         }
         ///<summary>Easing type.</summary>
         public T setEase(Ease ease)
         {
-            this.ivcommon.setEase(ease);
+            this.onEase(ease);
             return this as T;
         }
         ///<summary>Loop count for each tween instance.</summary>
-        public T setLoop(in int loopCount)
+        public T setLoop(int loopCount)
         {
-            this.ivcommon.setLoop(loopCount);
+            this.onLoop(loopCount);
             return this as T;
         }
         ///<summary>Whether it will be affacted by Time.timeScale or not.</summary>
@@ -1326,8 +1374,8 @@ namespace Breadnone.Extension
         {
             if (state)
             {
-                this.runTime -= this.ivcommon.ExecRunningTimeScaled;
-                this.runTime = this.ivcommon.ExecRunningTimeUnscaled;
+                this.AddRegister(new EventVRegister{callback = this.ExecRunningTimeUnscaled, id = 1});
+                this.AssingTime(true);
             }
 
             return this as T;
@@ -1335,7 +1383,7 @@ namespace Breadnone.Extension
         ///<summary>Back and forth or pingpong-like interpolation.</summary>
         public T setPingPong(bool state)
         {
-            this.ivcommon.setPingPong(state);
+            this.onPingPong(state);
             return this as T;
         }
         ///<summary>Back and forth or pingpong-like interpolation.</summary>
@@ -1345,7 +1393,7 @@ namespace Breadnone.Extension
             return this as T;
         }
         ///<summary>Delays startup execution.</summary>
-        public T setDelay(in float delayTime)
+        public T setDelay(float delayTime)
         {
             if (delayTime > 0f)
             {
@@ -1356,7 +1404,8 @@ namespace Breadnone.Extension
             {
                 if (registers[i].id == 1)
                 {
-                    ivcommon.AddClearEvent(registers[i], false);
+                    var t = registers[i];
+                    AddClearEvent(t, false);
 
                     void delayed()
                     {
@@ -1370,7 +1419,8 @@ namespace Breadnone.Extension
                         registers[i].callback.Invoke();
                     };
 
-                    ivcommon.AddRegister(new EventVRegister { callback = delayed, id = 1 });
+                    var tt = new EventVRegister { callback = delayed, id = 1 };
+                    AddRegister(tt);
                     break;
                 }
             }
@@ -1382,13 +1432,19 @@ namespace Breadnone.Extension
             return this as T;
         }
     }
-    ///<summary>Wrapper to VTweenClass events/delegates.</summary>
+    ///<summary>VTweenClass events/delegates.</summary>
     public class EventVRegister
     {
         public Action callback;
         public int id;
     }
-    public struct VTProps
+    ///<summary>VTweenClass events/delegates.</summary>
+    public struct StructVRegister
+    {
+        public Action callback;
+        public int id;
+    }
+    public class VTProps
     {
         public int id { get; set; }
         public int loopAmount { get; set; }
@@ -1414,11 +1470,5 @@ namespace Breadnone.Extension
             delayedTime = null;
             oncompleteRepeat = false;
         }
-    }
-    public struct VTDelegate
-    {
-        public Action exec { get; set; }
-        public Action oncomplete { get; set; }
-        public Action runTime { get; set; }
     }
 }

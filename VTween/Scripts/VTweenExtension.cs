@@ -31,7 +31,7 @@ namespace Breadnone.Extension
     {
         Action callback;
         bool unscaledTime;
-        public void SetBaseValues(float time, Action act, bool unscaled = false)
+        public void SetBaseValues(ref float time, Action act, bool unscaled = false)
         {
             vprops.duration = time;
             callback = act;
@@ -48,7 +48,8 @@ namespace Breadnone.Extension
                     vprops.runningTime += Time.unscaledDeltaTime;
             }
 
-            ivcommon.AddRegister(new EventVRegister{callback = evt, id = 1});
+            var t = new EventVRegister{callback = evt, id = 1};
+            AddRegister(t);
             VTweenManager.InsertToActiveTween(this);
         }
     }
@@ -82,12 +83,12 @@ namespace Breadnone.Extension
                         }
                     }
 
-                    vtweens[i].ivcommon.onComplete(call);
+                    vtweens[i].onComplete(call);
                 }
             }
             
             if(oncomplete != null)
-                vtweens[vtweens.Count - 1].ivcommon.onComplete(oncomplete);
+                vtweens[vtweens.Count - 1].onComplete(oncomplete);
             
             vtweens[0].state = TweenState.Tweening;
         }

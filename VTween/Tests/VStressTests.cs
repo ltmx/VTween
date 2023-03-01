@@ -110,7 +110,7 @@ public class VStressTests : MonoBehaviour
                 var go = Instantiate(xTopObjects[i], xTopObjects[i].transform.position, xTopObjects[i].transform.rotation);
                 go.transform.SetParent(parent, true);
                 go.GetComponent<Image>().color = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
-                VTween.moveFast(go, xBottomObjects[UnityEngine.Random.Range(0, xBottomObjects.Count - 1)].transform.position, UnityEngine.Random.Range(1f, 3f), ease:ease, onComplete:()=>
+                VTween.moveFast(go, xBottomObjects[UnityEngine.Random.Range(0, xBottomObjects.Count - 1)].transform.position, UnityEngine.Random.Range(1f, 3f), loopCount:2, ease:ease, onComplete:()=>
                 {
                     Destroy(go);
                 });
@@ -125,7 +125,7 @@ public class VStressTests : MonoBehaviour
                     var ggo = Instantiate(xBottomObjects[j], xBottomObjects[j].transform.position, xBottomObjects[j].transform.rotation);
                     ggo.transform.SetParent(parent, true);
                     ggo.GetComponent<Image>().color = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
-                    VTween.moveFast(ggo, xTopObjects[UnityEngine.Random.Range(0, xTopObjects.Count - 1)].transform.position, UnityEngine.Random.Range(1.5f, 3f), ease:ease, onComplete:()=>
+                    VTween.moveFast(ggo, xTopObjects[UnityEngine.Random.Range(0, xTopObjects.Count - 1)].transform.position, UnityEngine.Random.Range(1.5f, 3f), loopCount:2, ease:ease, onComplete:()=>
                     {
                         Destroy(ggo);
                     });

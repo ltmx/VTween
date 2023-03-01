@@ -4,7 +4,6 @@ using Breadnone;
 using System;
 using UnityEngine;
 using UnityEngine.UIElements;
-using System.Buffers;
 
 //Struct based VTween impl test.
 namespace Breadnone.Extension
@@ -12,37 +11,31 @@ namespace Breadnone.Extension
     ///<summary>Fast struct based tweening class with less allocation.</summary>
     public ref struct STStructMove
     {
-        SEvent svt;
-        public STStructMove(GameObject gameObject, Vector3 destination, float time, float loopCount, Ease ease = Ease.Linear, Action onComplete = null, bool localSpace = false, bool unscaledTime = false)
+        public STStructMove(GameObject gameObject, Vector3 destination, float time, Ease ease = Ease.Linear, int loopCount = 0, bool pingpong = false, Action onComplete = null, bool local = false, bool unscaledTime = false)
         {
-            var sevent = new SEvent();
-            svt = sevent;
-            sevent.registers = new List<EventVRegister>(2);
-
+            var sevent = new VSCore();
+            sevent.registers = new StructVRegister[4];
+            sevent.unscaledTime = unscaledTime;
+            sevent.loopAmount = loopCount;
+            sevent.pingPong = pingpong;
             float runningTime = 0f;
             Vector3 defaultPos;
             sevent.sid = gameObject.GetInstanceID();
+            Transform transform = gameObject.transform;
 
-            if (!localSpace)
-                defaultPos = gameObject.transform.position;
-            else
-                defaultPos = gameObject.transform.localPosition;
+            if (!local) defaultPos = transform.position;
+            else defaultPos = transform.localPosition;
 
-            bool done = false;
-
-            if (!localSpace)
+            if (!local)
             {
                 void call()
                 {
-                    if (runningTime + 0.0001f > time)
-                    {
-                        if (done) return;
-                        sevent.ExecOnComplete(true);
-                        done = true;
-                    }
+                    if (sevent.IfCompleted(ref runningTime, ref time))
+                        return;
 
-                    gameObject.transform.position = VEasings.ValEase(ease, defaultPos, destination, (runningTime / time));
-                    runningTime += Time.deltaTime;
+                    var tmval = (runningTime / time);
+                    transform.position = VEasings.ValEase(ease, defaultPos, destination, tmval);
+                    sevent.CalcRuntime(ref runningTime);
                 }
 
                 sevent.onStart(call);
@@ -51,42 +44,50 @@ namespace Breadnone.Extension
             {
                 void call()
                 {
-                    if (runningTime + 0.0001f > time)
-                    {
-                        if (done)
-                            return;
+                    if (sevent.IfCompleted(ref runningTime, ref time))
+                        return;
 
-                        sevent.ExecOnComplete(true);
-                        done = true;
-                    }
-
-                    gameObject.transform.localPosition = VEasings.ValEase(ease, defaultPos, destination, (runningTime / time));
-                    runningTime += Time.deltaTime;
+                    var tmval = (runningTime / time);
+                    transform.localPosition = VEasings.ValEase(ease, defaultPos, destination, tmval);
+                    sevent.CalcRuntime(ref runningTime);
                 }
 
                 sevent.onStart(call);
             }
 
-            if (onComplete != null)
-                sevent.onComplete(onComplete);
-
+            sevent.onComplete(onComplete);
             sevent.ChangeState(TweenState.Tweening);
-            VTweenManager.FastStructInsertToActive(sevent.exec, sevent.sid);
-        }
 
-        public void TryCancel(bool execOnComplete = false) { svt.ExecOnComplete(execOnComplete); }
+            if(loopCount > 0)
+            {
+                void reset()
+                {
+                    runningTime = 0f;
+
+                    if(pingpong)
+                    {
+                        Utilv.SwapRefs<Vector3>(ref defaultPos, ref destination);
+                    }
+                    else
+                    {
+                        gameObject.transform.position = destination;
+                    }
+                }
+
+                sevent.onReset(reset);
+            }
+
+            VTweenManager.FastStructInsertToActive(() => sevent.Exec(), () => sevent.ExecOnComplete(false), sevent.sid);
+        }
     }
+
     ///<summary>Struct based object following.</summary>
     public ref struct STStructFollow
     {
-        SEvent svt;
         public STStructFollow(GameObject gameObject, Transform target, float speed, Vector3 smoothness)
         {
-            var sevent = new SEvent();
-            svt = sevent;
-            sevent.registers = new List<EventVRegister>(2);
-
-            float runningTime = 0f;
+            var sevent = new VSCore();
+            sevent.registers = new StructVRegister[2];
             Vector3 defaultPos;
             sevent.sid = gameObject.GetInstanceID();
             defaultPos = gameObject.transform.position;
@@ -95,66 +96,207 @@ namespace Breadnone.Extension
             void call()
             {
                 transform.position = Vector3.SmoothDamp(transform.position, target.position, ref smoothness, speed);
-                runningTime += Time.deltaTime;
             }
 
             sevent.onStart(call);
             sevent.ChangeState(TweenState.Tweening);
-            VTweenManager.FastStructInsertToActive(sevent.exec, sevent.sid);
+            VTweenManager.FastStructInsertToActive(() => sevent.Exec(), () => sevent.ExecOnComplete(false), sevent.sid);
         }
-
-        public void TryCancel(bool execOnComplete) { svt.ExecOnComplete(execOnComplete); }
     }
     ///<summary>Struct based tweening.</summary>
     public ref struct STStructMoveUI
     {
-        SEvent svt;
-        public STStructMoveUI(VisualElement visualElement, Vector3 destination, float time, float loopCount, Ease ease = Ease.Linear, Action onComplete = null, bool unscaledTime = false)
+        public STStructMoveUI(VisualElement visualElement, Vector3 destination, float time, Ease ease = Ease.Linear, int loopCount = 0, Action onComplete = null, bool unscaledTime = false)
         {
-            var sevent = new SEvent();
-            svt = sevent;
-            sevent.registers = new List<EventVRegister>(2);
-
+            var sevent = new VSCore();
+            sevent.registers = new StructVRegister[2];
             float runningTime = 0f;
             Vector3 defaultPos;
             sevent.sid = visualElement.GetHashCode();
             defaultPos = visualElement.transform.position;
-            bool done = false;
 
             void call()
             {
-                if (runningTime + 0.0001f > time)
-                {
-                    if (done) return;
-                    sevent.ExecOnComplete(true);
-                    done = true;
-                }
+                if (sevent.IfCompleted(ref runningTime, ref time))
+                    return;
 
-                var t = VEasings.ValEase(ease, defaultPos, destination, (runningTime / time));
+                var tmval = (runningTime / time);
+                var t = VEasings.ValEase(ease, defaultPos, destination, tmval);
                 visualElement.style.translate = new Translate(t.x, t.y, t.z);
-                runningTime += Time.deltaTime;
+                sevent.CalcRuntime(ref runningTime);
             }
 
             sevent.onStart(call);
-
-            if (onComplete != null)
-                sevent.onComplete(onComplete);
-
+            sevent.onComplete(onComplete);
             sevent.ChangeState(TweenState.Tweening);
-            VTweenManager.FastStructInsertToActive(sevent.exec, sevent.sid);
+            VTweenManager.FastStructInsertToActive(() => sevent.Exec(), () => sevent.ExecOnComplete(false), sevent.sid);
         }
-
-        public void TryCancel(bool execOnComplete){svt.ExecOnComplete(execOnComplete);}
     }
-    public struct SEvent
+    ///<summary>Struct rotate api.</summary>
+    public ref struct STStructRotate
+    {
+        public STStructRotate(GameObject gameObject, float degreeAngle, Vector3 direction, float time, Ease ease = Ease.Linear, Action onComplete = null, bool localSpace = false, bool unscaledTime = false)
+        {
+            var sevent = new VSCore();
+            sevent.registers = new StructVRegister[2];
+            float runningTime = 0f;
+            sevent.sid = gameObject.GetInstanceID();
+            Quaternion currentRotation;
+            Transform transform = gameObject.transform;
+
+            if (!localSpace)
+                currentRotation = transform.rotation * Quaternion.AngleAxis(degreeAngle, direction);
+            else
+                currentRotation = transform.localRotation * Quaternion.AngleAxis(degreeAngle, direction);
+
+            void callback()
+            {
+                if (sevent.IfCompleted(ref runningTime, ref time))
+                    return;
+
+                transform.rotation = Quaternion.AngleAxis(VEasings.ValEase(ease, 0f, degreeAngle, (runningTime / time)), direction);
+                sevent.CalcRuntime(ref runningTime);
+            }
+
+            void callbackLocal()
+            {
+                if (sevent.IfCompleted(ref runningTime, ref time))
+                    return;
+
+                transform.localRotation = Quaternion.AngleAxis(VEasings.ValEase(ease, 0f, degreeAngle, (runningTime / time)), direction);
+                sevent.CalcRuntime(ref runningTime);
+            }
+
+            if (!localSpace)
+                sevent.onStart(callback);
+            else
+                sevent.onStart(callbackLocal);
+
+            sevent.onComplete(onComplete);
+            sevent.ChangeState(TweenState.Tweening);
+            VTweenManager.FastStructInsertToActive(() => sevent.Exec(), () => sevent.ExecOnComplete(false), sevent.sid);
+        }
+    }
+    ///<summary>Struct rotate api.</summary>
+    public ref struct STStructRotateUI
+    {
+        public STStructRotateUI(VisualElement visualElement, float degreeAngle, float time, Ease ease = Ease.Linear, Action onComplete = null, bool unscaledTime = false)
+        {
+            var sevent = new VSCore();
+            sevent.registers = new StructVRegister[2];
+            float runningTime = 0f;
+            sevent.sid = visualElement.GetHashCode();
+
+            void callback()
+            {
+                if (sevent.IfCompleted(ref runningTime, ref time))
+                    return;
+
+                visualElement.style.rotate = new Rotate(VEasings.ValEase(ease, 0f, degreeAngle, (runningTime / time)));
+                sevent.CalcRuntime(ref runningTime);
+            }
+
+            sevent.onStart(callback);
+            sevent.onComplete(onComplete);
+            sevent.ChangeState(TweenState.Tweening);
+            VTweenManager.FastStructInsertToActive(() => sevent.Exec(), () => sevent.ExecOnComplete(false), sevent.sid);
+        }
+    }
+    ///<summary>Struct scale api.</summary>
+    public ref struct STStructScale
+    {
+        public STStructScale(GameObject gameObject, Vector3 scale, float time, Ease ease = Ease.Linear, Action onComplete = null, bool unscaledTime = false)
+        {
+            var sevent = new VSCore();
+            sevent.registers = new StructVRegister[2];
+            float runningTime = 0f;
+            Vector3 defaultScale = gameObject.transform.localScale;
+            sevent.sid = gameObject.GetInstanceID();
+            Transform transform = gameObject.transform;
+
+            void call()
+            {
+                if (sevent.IfCompleted(ref runningTime, ref time))
+                    return;
+
+                var tmval = (runningTime / time);
+                transform.localScale = VEasings.ValEase(ease, defaultScale, scale, tmval);
+                sevent.CalcRuntime(ref runningTime);
+            }
+
+            sevent.onStart(call);
+            sevent.onComplete(onComplete);
+            sevent.ChangeState(TweenState.Tweening);
+            VTweenManager.FastStructInsertToActive(() => sevent.Exec(), () => sevent.ExecOnComplete(false), sevent.sid);
+        }
+    }
+    ///<summary>Struct scale api.</summary>
+    public ref struct STStructScaleUI
+    {
+        public STStructScaleUI(VisualElement visualElement, Vector3 scale, float time, Ease ease = Ease.Linear, Action onComplete = null, bool localSpace = false, bool unscaledTime = false)
+        {
+            var sevent = new VSCore();
+            sevent.registers = new StructVRegister[2];
+            float runningTime = 0f;
+            Vector3 defaultScale = visualElement.style.scale.value.value;
+            sevent.sid = visualElement.GetHashCode();
+
+            void call()
+            {
+                if (sevent.IfCompleted(ref runningTime, ref time))
+                    return;
+
+                var tmval = (runningTime / time);
+                visualElement.style.scale = new Scale(VEasings.ValEase(ease, defaultScale, scale, tmval));
+                sevent.CalcRuntime(ref runningTime);
+            }
+
+            sevent.onStart(call);
+            sevent.onComplete(onComplete);
+            sevent.ChangeState(TweenState.Tweening);
+            VTweenManager.FastStructInsertToActive(() => sevent.Exec(), () => sevent.ExecOnComplete(false), sevent.sid);
+        }
+    }
+    public ref struct STStructValue
+    {
+        public STStructValue(float from, float to, float time, Action callback, Ease ease = Ease.Linear, Action onComplete = null, bool unscaledTime = false)
+        {
+            var sevent = new VSCore();
+            sevent.registers = new StructVRegister[2];
+            float runningTime = 0f;
+            float runningValue;
+            sevent.sid = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
+
+            void call()
+            {
+                if (sevent.IfCompleted(ref runningTime, ref time))
+                    return;
+
+                runningValue = VEasings.ValEase(ease, from, to, (runningTime / time));
+                sevent.CalcRuntime(ref runningTime);
+            }
+
+            sevent.onStart(call);
+            sevent.onComplete(onComplete);
+            sevent.ChangeState(TweenState.Tweening);
+            VTweenManager.FastStructInsertToActive(() => sevent.Exec(), () => sevent.ExecOnComplete(false), sevent.sid);
+        }
+    }
+    ///<summary>Handles events.</summary>
+    public struct VSCore
     {
         public int sid { get; set; }
         public Action exec { get; set; }
         public Action oncomplete { get; set; }
-        public List<EventVRegister> registers { get; set; }
+        public Action onreset{get;set;}
+        public StructVRegister[] registers { get; set; }
         public TweenState state;
+        public bool unscaledTime { get; set; }
         public void ChangeState(TweenState vstate) { state = vstate; }
-        public TweenState isTweening { get { return state; } }
+        public int loopAmount { get; set; }
+        public int loopCounter { get; set; }
+        public bool pingPong { get; set; }
+        public int pingPongCounter { get; set; }
         public void Exec()
         {
             if (state != TweenState.Tweening)
@@ -171,27 +313,44 @@ namespace Breadnone.Extension
 
         public void onComplete(Action callback)
         {
+            if (callback == null)
+                return;
+
             addEvent(callback, 2);
             oncomplete += callback;
         }
+        public void onReset(Action callback)
+        {
+            addEvent(callback, 3);
+            onreset += callback;
+        }
         private void addEvent(Action callback, int id)
         {
-            registers.Add(new EventVRegister { callback = callback, id = id });
+            for (int i = 0; i < registers.Length; i++)
+            {
+                if (registers[i].callback == null)
+                {
+                    registers[i] = new StructVRegister { callback = callback, id = id };
+                    break;
+                }
+            }
         }
         public void ExecOnComplete(bool execOnComplete)
         {
-            ChangeState(TweenState.None);
-            VTweenManager.FastStructRemoveFromActive(exec, sid);
+            if (state == TweenState.None)
+                return;
 
-            if(execOnComplete)
-                oncomplete.Invoke();
-            
-            DisposeEvents();
-        }
-        public void DisposeEvents()
-        {
-            for (int i = 0; i < registers.Count; i++)
+            ChangeState(TweenState.None);
+            VTweenManager.FastStructRemoveFromActive(sid);
+
+            if (execOnComplete)
+                oncomplete?.Invoke();
+
+            for (int i = 0; i < registers.Length; i++)
             {
+                if (registers[i].callback == null)
+                    continue;
+
                 if (registers[i].id == 1)
                 {
                     exec -= registers[i].callback;
@@ -202,13 +361,53 @@ namespace Breadnone.Extension
                 }
             }
         }
-        public void Cancel(bool execOnComplete)
+        ///<summary>Scaled or unscaled time.</summary>
+        public void CalcRuntime(ref float runtime)
         {
-            this.ExecOnComplete(execOnComplete);
+            if (!unscaledTime)
+                runtime += Time.deltaTime;
+            else
+                runtime += Time.unscaledDeltaTime;
         }
-        public void Pause()
+        ///<summary>Checks if tween already finished.</summary>
+        public bool IfCompleted(ref float runningTime, ref float time)
         {
-            this.state = TweenState.Paused;
+            if (runningTime + 0.0001 > time)
+            {
+                if (loopAmount > 0)
+                {
+                    onreset.Invoke();
+                    loopCounter++;
+
+                    if(!pingPong)
+                    {
+                        if(loopAmount != loopCounter)
+                            return false;
+                    }
+                    else
+                    {                        
+                        if(loopCounter != loopAmount * 2)
+                        {
+                            return false;
+                        }
+                    }
+                }
+
+                ExecOnComplete(true);
+                return true;
+            }
+
+            return false;
+        }
+        public VSCore onLoop(int loopCount)
+        {
+            this.loopAmount = loopCount;
+            return this;
+        }
+        public VSCore onPingPong(bool state)
+        {
+            this.pingPong = state;
+            return this;
         }
     }
 }

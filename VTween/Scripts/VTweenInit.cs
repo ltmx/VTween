@@ -27,7 +27,7 @@ namespace Breadnone.Extension
         static void OnRuntimeMethodLoad()
         {
             AttachVComponent();
-            VTweenManager.InitPool(10);
+            VTweenManager.InitPool(5);
         } 
 
         private static void AttachVComponent()

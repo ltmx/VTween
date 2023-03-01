@@ -356,199 +356,204 @@ namespace Breadnone
             return a * Mathf.Pow(2, -10 * (value -= 1)) * Mathf.Sin((value * d - s) * (2 * Mathf.PI) / p) * 0.5f + end + start;
         }
 //////////
-        public static Vector3 Linear(Vector3 start, Vector3 end, float value)
+        public static Vector3 Linear(ref Vector3 start, ref Vector3 end, ref float value)
         {
             return Vector3.Lerp(start, end, value);
         }
 
-        public static Vector3 Spring(Vector3 start, Vector3 end, float value)
+        public static Vector3 Spring(ref Vector3 start, ref Vector3 end, ref float value)
         {
             value = Mathf.Clamp01(value);
             value = (Mathf.Sin(value * Mathf.PI * (0.2f + 2.5f * value * value * value)) * Mathf.Pow(1f - value, 2.2f) + value) * (1f + (1.2f * (1f - value)));
             return  new Vector3(start.x + (end.x - start.x), start.y + (end.y - start.y), start.z + (end.z - start.z));//start + (end - start) * value;
         }
 
-        public static Vector3 EaseInQuad(Vector3 start, Vector3 end, float value)
+        public static Vector3 EaseInQuad(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
-            return new Vector3(end.x * value * value + start.x, end.y * value * value + start.y, end.z * value * value + start.z);//end * value * value + start;
+            return end * value * value + start;
+            //return new Vector3(end.x * value * value + start.x, end.y * value * value + start.y, end.z * value * value + start.z);//end * value * value + start;
         }
 
-        public static Vector3 EaseOutQuad(Vector3 start, Vector3 end, float value)
+        public static Vector3 EaseOutQuad(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
-            return new Vector3(-end.x * value * (value - 2) + start.x, -end.y * value * (value - 2) + start.y, -end.z * value * (value - 2) + start.z);//-end * value * (value - 2) + start;
+            return -end * value * (value - 2) + start;
+            //return new Vector3(-end.x * value * (value - 2) + start.x, -end.y * value * (value - 2) + start.y, -end.z * value * (value - 2) + start.z);//-end * value * (value - 2) + start;
         }
 
-        public static Vector3 EaseInOutQuad(Vector3 start, Vector3 end, float value)
+        public static Vector3 EaseInOutQuad(ref Vector3 start, ref Vector3 end, ref float value)
         {
             value /= .5f;
             end -= start;
-            if (value < 1) return new Vector3(end.x * 0.5f * value * value + start.x, end.y * 0.5f * value * value + start.y, end.z * 0.5f * value * value + start.z);//end * 0.5f * value * value + start;
+            if (value < 1) return end * 0.5f * value * value + start;//new Vector3(end.x * 0.5f * value * value + start.x, end.y * 0.5f * value * value + start.y, end.z * 0.5f * value * value + start.z);//end * 0.5f * value * value + start;
             value--;
-            return new Vector3(-end.x * 0.5f * (value * (value - 2) - 1) + start.x, -end.y * 0.5f * (value * (value - 2) - 1) + start.y, -end.z * 0.5f * (value * (value - 2) - 1) + start.z);//-end * 0.5f * (value * (value - 2) - 1) + start;
+            return -end * 0.5f * (value * (value - 2) - 1) + start;//new Vector3(-end.x * 0.5f * (value * (value - 2) - 1) + start.x, -end.y * 0.5f * (value * (value - 2) - 1) + start.y, -end.z * 0.5f * (value * (value - 2) - 1) + start.z);//-end * 0.5f * (value * (value - 2) - 1) + start;
         }
 
-        public static Vector3 EaseInCubic(Vector3 start, Vector3 end, float value)
+        public static Vector3 EaseInCubic(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
-            return new Vector3(end.x * value * value * value + start.x, end.y * value * value * value + start.y, end.z * value * value * value + start.z);//end * value * value * value + start;
+            return end * value * value * value + start;
+            //return new Vector3(end.x * value * value * value + start.x, end.y * value * value * value + start.y, end.z * value * value * value + start.z);//end * value * value * value + start;
         }
 
-        public static Vector3 EaseOutCubic(Vector3 start, Vector3 end, float value)
+        public static Vector3 EaseOutCubic(ref Vector3 start, ref Vector3 end, ref float value)
         {
             value--;
             end -= start;
-            return new Vector3(end.x * (value * value * value + 1) + start.x, end.y * (value * value * value + 1) + start.y, end.z * (value * value * value + 1) + start.z); //end * (value * value * value + 1) + start;
+            return end * (value * value * value + 1) + start;
+            //return new Vector3(end.x * (value * value * value + 1) + start.x, end.y * (value * value * value + 1) + start.y, end.z * (value * value * value + 1) + start.z); //end * (value * value * value + 1) + start;
         }
 
-        public static Vector3 EaseInOutCubic(Vector3 start, Vector3 end, float value)
+        public static Vector3 EaseInOutCubic(ref Vector3 start, ref Vector3 end, ref float value)
         {
             value /= .5f;
             end -= start;
-            if (value < 1) return new Vector3(end.x * 0.5f * value * value * value + start.x, end.y * 0.5f * value * value * value + start.y, end.z * 0.5f * value * value * value + start.z);//end * 0.5f * value * value * value + start;
+            if (value < 1) return end * 0.5f * value * value * value + start;//new Vector3(end.x * 0.5f * value * value * value + start.x, end.y * 0.5f * value * value * value + start.y, end.z * 0.5f * value * value * value + start.z);//end * 0.5f * value * value * value + start;
             value -= 2;
-            return new Vector3(end.x * 0.5f * (value * value * value + 2) + start.x, end.y * 0.5f * (value * value * value + 2) + start.y, end.z * 0.5f * (value * value * value + 2) + start.z);//end * 0.5f * (value * value * value + 2) + start;
+            return end * 0.5f * (value * value * value + 2) + start;//new Vector3(end.x * 0.5f * (value * value * value + 2) + start.x, end.y * 0.5f * (value * value * value + 2) + start.y, end.z * 0.5f * (value * value * value + 2) + start.z);//end * 0.5f * (value * value * value + 2) + start;
         }
 
-        public static Vector3 EaseInQuart(Vector3 start, Vector3 end, float value)
+        public static Vector3 EaseInQuart(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
-            return new Vector3(end.x * value * value * value * value + start.x, end.y * value * value * value * value + start.y, end.z * value * value * value * value + start.z);//end * value * value * value * value + start;
+            return end * value * value * value * value + start;//new Vector3(end.x * value * value * value * value + start.x, end.y * value * value * value * value + start.y, end.z * value * value * value * value + start.z);//end * value * value * value * value + start;
         }
 
-        public static Vector3 EaseOutQuart(Vector3 start, Vector3 end, float value)
+        public static Vector3 EaseOutQuart(ref Vector3 start, ref Vector3 end, ref float value)
         {
             value--;
             end -= start;
             return new Vector3(-end.x * (value * value * value * value - 1) + start.x, -end.y * (value * value * value * value - 1) + start.y, -end.z * (value * value * value * value - 1) + start.z);//-end * (value * value * value * value - 1) + start;
         }
 
-        public static Vector3 EaseInOutQuart(Vector3 start, Vector3 end, float value)
+        public static Vector3 EaseInOutQuart(ref Vector3 start, ref Vector3 end, ref float value)
         {
             value /= .5f;
             end -= start;
-            if (value < 1) return new Vector3(end.x * 0.5f * value * value * value * value + start.x, end.y * 0.5f * value * value * value * value + start.y, end.z * 0.5f * value * value * value * value + start.z);//end * 0.5f * value * value * value * value + start;
+            if (value < 1) return end * 0.5f * value * value * value * value + start;//new Vector3(end.x * 0.5f * value * value * value * value + start.x, end.y * 0.5f * value * value * value * value + start.y, end.z * 0.5f * value * value * value * value + start.z);//end * 0.5f * value * value * value * value + start;
             value -= 2;
-            return new Vector3(-end.x * 0.5f * (value * value * value * value - 2) + start.x, -end.y * 0.5f * (value * value * value * value - 2) + start.y, -end.z * 0.5f * (value * value * value * value - 2) + start.z);//-end * 0.5f * (value * value * value * value - 2) + start;
+            return -end * 0.5f * (value * value * value * value - 2) + start; //new Vector3(-end.x * 0.5f * (value * value * value * value - 2) + start.x, -end.y * 0.5f * (value * value * value * value - 2) + start.y, -end.z * 0.5f * (value * value * value * value - 2) + start.z);//-end * 0.5f * (value * value * value * value - 2) + start;
         }
 
-        public static Vector3 EaseInQuint(Vector3 start, Vector3 end, float value)
+        public static Vector3 EaseInQuint(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
-            return new Vector3(end.x * value * value * value * value * value + start.x, end.y * value * value * value * value * value + start.y, end.z * value * value * value * value * value + start.z);//end * value * value * value * value * value + start;
+            return end * value * value * value * value * value + start;//new Vector3(end.x * value * value * value * value * value + start.x, end.y * value * value * value * value * value + start.y, end.z * value * value * value * value * value + start.z);//end * value * value * value * value * value + start;
         }
 
-        public static Vector3 EaseOutQuint(Vector3 start, Vector3 end, float value)
+        public static Vector3 EaseOutQuint(ref Vector3 start, ref Vector3 end, ref float value)
         {
             value--;
             end -= start;
-            return new Vector3(end.x * (value * value * value * value * value + 1) + start.x, end.y * (value * value * value * value * value + 1) + start.y, end.z * (value * value * value * value * value + 1) + start.z);//end * (value * value * value * value * value + 1) + start;
+            return end * (value * value * value * value * value + 1) + start;//new Vector3(end.x * (value * value * value * value * value + 1) + start.x, end.y * (value * value * value * value * value + 1) + start.y, end.z * (value * value * value * value * value + 1) + start.z);//end * (value * value * value * value * value + 1) + start;
         }
 
-        public static Vector3 EaseInOutQuint(Vector3 start, Vector3 end, float value)
+        public static Vector3 EaseInOutQuint(ref Vector3 start, ref Vector3 end, ref float value)
         {
             value /= .5f;
             end -= start;
-            if (value < 1) return new Vector3(end.x * 0.5f * value * value * value * value * value + start.x, end.y * 0.5f * value * value * value * value * value + start.y, end.z * 0.5f * value * value * value * value * value + start.z);//end * 0.5f * value * value * value * value * value + start;
+            if (value < 1) return end * 0.5f * value * value * value * value * value + start;//new Vector3(end.x * 0.5f * value * value * value * value * value + start.x, end.y * 0.5f * value * value * value * value * value + start.y, end.z * 0.5f * value * value * value * value * value + start.z);//end * 0.5f * value * value * value * value * value + start;
             value -= 2;
-            return new Vector3(end.x * 0.5f * (value * value * value * value * value + 2) + start.x, end.y * 0.5f * (value * value * value * value * value + 2) + start.y, end.z * 0.5f * (value * value * value * value * value + 2) + start.z);//end * 0.5f * (value * value * value * value * value + 2) + start;
+            return end * 0.5f * (value * value * value * value * value + 2) + start;//new Vector3(end.x * 0.5f * (value * value * value * value * value + 2) + start.x, end.y * 0.5f * (value * value * value * value * value + 2) + start.y, end.z * 0.5f * (value * value * value * value * value + 2) + start.z);//end * 0.5f * (value * value * value * value * value + 2) + start;
         }
 
-        public static Vector3 EaseInSine(Vector3 start, Vector3 end, float value)
+        public static Vector3 EaseInSine(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
-            return new Vector3(-end.x * Mathf.Cos(value * (Mathf.PI * 0.5f)) + end.x + start.x, -end.y * Mathf.Cos(value * (Mathf.PI * 0.5f)) + end.y + start.y, -end.z * Mathf.Cos(value * (Mathf.PI * 0.5f)) + end.z + start.z);//-end * Mathf.Cos(value * (Mathf.PI * 0.5f)) + end + start;
+            return -end * Mathf.Cos(value * (Mathf.PI * 0.5f)) + end + start;//new Vector3(-end.x * Mathf.Cos(value * (Mathf.PI * 0.5f)) + end.x + start.x, -end.y * Mathf.Cos(value * (Mathf.PI * 0.5f)) + end.y + start.y, -end.z * Mathf.Cos(value * (Mathf.PI * 0.5f)) + end.z + start.z);//-end * Mathf.Cos(value * (Mathf.PI * 0.5f)) + end + start;
         }
 
-        public static Vector3 EaseOutSine(Vector3 start, Vector3 end, float value)
+        public static Vector3 EaseOutSine(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
-            return new Vector3(end.x * Mathf.Sin(value * (Mathf.PI * 0.5f)) + start.x, end.y * Mathf.Sin(value * (Mathf.PI * 0.5f)) + start.y, end.z * Mathf.Sin(value * (Mathf.PI * 0.5f)) + start.z);//end * Mathf.Sin(value * (Mathf.PI * 0.5f)) + start;
+            return end * Mathf.Sin(value * (Mathf.PI * 0.5f)) + start;//new Vector3(end.x * Mathf.Sin(value * (Mathf.PI * 0.5f)) + start.x, end.y * Mathf.Sin(value * (Mathf.PI * 0.5f)) + start.y, end.z * Mathf.Sin(value * (Mathf.PI * 0.5f)) + start.z);//end * Mathf.Sin(value * (Mathf.PI * 0.5f)) + start;
         }
 
-        public static Vector3 EaseInOutSine(Vector3 start, Vector3 end, float value)
+        public static Vector3 EaseInOutSine(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
-            return new Vector3(-end.x * 0.5f * (Mathf.Cos(Mathf.PI * value) - 1) + start.x, -end.y * 0.5f * (Mathf.Cos(Mathf.PI * value) - 1) + start.y, -end.z * 0.5f * (Mathf.Cos(Mathf.PI * value) - 1) + start.z);//-end * 0.5f * (Mathf.Cos(Mathf.PI * value) - 1) + start;
+            return -end * 0.5f * (Mathf.Cos(Mathf.PI * value) - 1) + start;// new Vector3(-end.x * 0.5f * (Mathf.Cos(Mathf.PI * value) - 1) + start.x, -end.y * 0.5f * (Mathf.Cos(Mathf.PI * value) - 1) + start.y, -end.z * 0.5f * (Mathf.Cos(Mathf.PI * value) - 1) + start.z);//-end * 0.5f * (Mathf.Cos(Mathf.PI * value) - 1) + start;
         }
 
-        public static Vector3 EaseInExpo(Vector3 start, Vector3 end, float value)
+        public static Vector3 EaseInExpo(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
-            return new Vector3(end.x * Mathf.Pow(2, 10 * (value - 1)) + start.x, end.y * Mathf.Pow(2, 10 * (value - 1)) + start.y, end.z * Mathf.Pow(2, 10 * (value - 1)) + start.z);//end * Mathf.Pow(2, 10 * (value - 1)) + start;
+            return end * Mathf.Pow(2, 10 * (value - 1)) + start;//new Vector3(end.x * Mathf.Pow(2, 10 * (value - 1)) + start.x, end.y * Mathf.Pow(2, 10 * (value - 1)) + start.y, end.z * Mathf.Pow(2, 10 * (value - 1)) + start.z);//end * Mathf.Pow(2, 10 * (value - 1)) + start;
         }
 
-        public static Vector3 EaseOutExpo(Vector3 start, Vector3 end, float value)
+        public static Vector3 EaseOutExpo(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
-            return new Vector3(end.x * (-Mathf.Pow(2, -10 * value) + 1) + start.x, end.y * (-Mathf.Pow(2, -10 * value) + 1) + start.y, end.z * (-Mathf.Pow(2, -10 * value) + 1) + start.z);//end * (-Mathf.Pow(2, -10 * value) + 1) + start;
+            return end * (-Mathf.Pow(2, -10 * value) + 1) + start;//new Vector3(end.x * (-Mathf.Pow(2, -10 * value) + 1) + start.x, end.y * (-Mathf.Pow(2, -10 * value) + 1) + start.y, end.z * (-Mathf.Pow(2, -10 * value) + 1) + start.z);//end * (-Mathf.Pow(2, -10 * value) + 1) + start;
         }
 
-        public static Vector3 EaseInOutExpo(Vector3 start, Vector3 end, float value)
-        {
-            value /= .5f;
-            end -= start;
-            if (value < 1) return new Vector3(end.x * 0.5f * Mathf.Pow(2, 10 * (value - 1)) + start.x, end.y * 0.5f * Mathf.Pow(2, 10 * (value - 1)) + start.y, end.z * 0.5f * Mathf.Pow(2, 10 * (value - 1)) + start.z);//end * 0.5f * Mathf.Pow(2, 10 * (value - 1)) + start;
-            value--;
-            return new Vector3(end.x * 0.5f * (-Mathf.Pow(2, -10 * value) + 2) + start.x, end.y * 0.5f * (-Mathf.Pow(2, -10 * value) + 2) + start.y, end.z * 0.5f * (-Mathf.Pow(2, -10 * value) + 2) + start.z);//end * 0.5f * (-Mathf.Pow(2, -10 * value) + 2) + start;
-        }
-
-        public static Vector3 EaseInCirc(Vector3 start, Vector3 end, float value)
-        {
-            end -= start;
-            return new Vector3(-end.x * (Mathf.Sqrt(1 - value * value) - 1) + start.x, -end.y * (Mathf.Sqrt(1 - value * value) - 1) + start.y, -end.z * (Mathf.Sqrt(1 - value * value) - 1) + start.z);//-end * (Mathf.Sqrt(1 - value * value) - 1) + start;
-        }
-
-        public static Vector3 EaseOutCirc(Vector3 start, Vector3 end, float value)
-        {
-            value--;
-            end -= start;
-            return new Vector3(end.x * Mathf.Sqrt(1 - value * value) + start.x, end.y * Mathf.Sqrt(1 - value * value) + start.y, end.z * Mathf.Sqrt(1 - value * value) + start.z);//end * Mathf.Sqrt(1 - value * value) + start;
-        }
-
-        public static Vector3 EaseInOutCirc(Vector3 start, Vector3 end, float value)
+        public static Vector3 EaseInOutExpo(ref Vector3 start, ref Vector3 end, ref float value)
         {
             value /= .5f;
             end -= start;
-            if (value < 1) return new Vector3(-end.x * 0.5f * (Mathf.Sqrt(1 - value * value) - 1) + start.x, -end.y * 0.5f * (Mathf.Sqrt(1 - value * value) - 1) + start.y, -end.z * 0.5f * (Mathf.Sqrt(1 - value * value) - 1) + start.z);//-end * 0.5f * (Mathf.Sqrt(1 - value * value) - 1) + start;
+            if (value < 1) return end * 0.5f * Mathf.Pow(2, 10 * (value - 1)) + start;//new Vector3(end.x * 0.5f * Mathf.Pow(2, 10 * (value - 1)) + start.x, end.y * 0.5f * Mathf.Pow(2, 10 * (value - 1)) + start.y, end.z * 0.5f * Mathf.Pow(2, 10 * (value - 1)) + start.z);//end * 0.5f * Mathf.Pow(2, 10 * (value - 1)) + start;
+            value--;
+            return end * 0.5f * (-Mathf.Pow(2, -10 * value) + 2) + start;//new Vector3(end.x * 0.5f * (-Mathf.Pow(2, -10 * value) + 2) + start.x, end.y * 0.5f * (-Mathf.Pow(2, -10 * value) + 2) + start.y, end.z * 0.5f * (-Mathf.Pow(2, -10 * value) + 2) + start.z);//end * 0.5f * (-Mathf.Pow(2, -10 * value) + 2) + start;
+        }
+
+        public static Vector3 EaseInCirc(ref Vector3 start, ref Vector3 end, ref float value)
+        {
+            end -= start;
+            return -end * (Mathf.Sqrt(1 - value * value) - 1) + start;
+            //return new Vector3(-end.x * (Mathf.Sqrt(1 - value * value) - 1) + start.x, -end.y * (Mathf.Sqrt(1 - value * value) - 1) + start.y, -end.z * (Mathf.Sqrt(1 - value * value) - 1) + start.z);//-end * (Mathf.Sqrt(1 - value * value) - 1) + start;
+        }
+
+        public static Vector3 EaseOutCirc(ref Vector3 start, ref Vector3 end, ref float value)
+        {
+            value--;
+            end -= start;
+            return end * Mathf.Sqrt(1 - value * value) + start;//new Vector3(end.x * Mathf.Sqrt(1 - value * value) + start.x, end.y * Mathf.Sqrt(1 - value * value) + start.y, end.z * Mathf.Sqrt(1 - value * value) + start.z);//end * Mathf.Sqrt(1 - value * value) + start;
+        }
+
+        public static Vector3 EaseInOutCirc(ref Vector3 start, ref Vector3 end, ref float value)
+        {
+            value /= .5f;
+            end -= start;
+            if (value < 1) return -end * 0.5f * (Mathf.Sqrt(1 - value * value) - 1) + start;//new Vector3(-end.x * 0.5f * (Mathf.Sqrt(1 - value * value) - 1) + start.x, -end.y * 0.5f * (Mathf.Sqrt(1 - value * value) - 1) + start.y, -end.z * 0.5f * (Mathf.Sqrt(1 - value * value) - 1) + start.z);//-end * 0.5f * (Mathf.Sqrt(1 - value * value) - 1) + start;
             value -= 2;
-            return new Vector3(end.x * 0.5f * (Mathf.Sqrt(1 - value * value) + 1) + start.x, end.y * 0.5f * (Mathf.Sqrt(1 - value * value) + 1) + start.y, end.z * 0.5f * (Mathf.Sqrt(1 - value * value) + 1) + start.z);//end * 0.5f * (Mathf.Sqrt(1 - value * value) + 1) + start;
+            return end * 0.5f * (Mathf.Sqrt(1 - value * value) + 1) + start;//new Vector3(end.x * 0.5f * (Mathf.Sqrt(1 - value * value) + 1) + start.x, end.y * 0.5f * (Mathf.Sqrt(1 - value * value) + 1) + start.y, end.z * 0.5f * (Mathf.Sqrt(1 - value * value) + 1) + start.z);//end * 0.5f * (Mathf.Sqrt(1 - value * value) + 1) + start;
         }
 
-        public static Vector3 EaseInBounce(Vector3 start, Vector3 end, float value)
+        public static Vector3 EaseInBounce(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
             return new Vector3(end.x - EaseOutBounce(0, end.x, 1f) + start.x, end.y - EaseOutBounce(0, end.y, 1f) + start.y, end.z - EaseOutBounce(0, end.z, 1f) + start.z);//end - EaseOutBounce(0, end, d) + start;
         }
 
-        public static Vector3 EaseOutBounce(Vector3 start, Vector3 end, float value)
+        public static Vector3 EaseOutBounce(ref Vector3 start, ref Vector3 end, ref float value)
         {
             value /= 1f;
             end -= start;
 
             if (value < (1 / 2.75f))
             {
-                return new Vector3(end.x * (7.5625f * value * value) + start.x, end.y * (7.5625f * value * value) + start.y, end.z * (7.5625f * value * value) + start.z);///end * (7.5625f * value * value) + start;
+                return end * (7.5625f * value * value) + start;//new Vector3(end.x * (7.5625f * value * value) + start.x, end.y * (7.5625f * value * value) + start.y, end.z * (7.5625f * value * value) + start.z);///end * (7.5625f * value * value) + start;
             }
             else if (value < (2 / 2.75f))
             {
                 value -= (1.5f / 2.75f);
-                return new Vector3(end.x * (7.5625f * (value) * value + .75f) + start.x, end.y * (7.5625f * (value) * value + .75f) + start.y, end.z * (7.5625f * (value) * value + .75f) + start.z);//end * (7.5625f * (value) * value + .75f) + start;
+                return end * (7.5625f * (value) * value + .75f) + start;//new Vector3(end.x * (7.5625f * (value) * value + .75f) + start.x, end.y * (7.5625f * (value) * value + .75f) + start.y, end.z * (7.5625f * (value) * value + .75f) + start.z);//end * (7.5625f * (value) * value + .75f) + start;
             }
             else if (value < (2.5 / 2.75))
             {
                 value -= (2.25f / 2.75f);
-                return new Vector3(end.x * (7.5625f * (value) * value + .9375f) + start.x, end.y * (7.5625f * (value) * value + .9375f) + start.y, end.z * (7.5625f * (value) * value + .9375f) + start.z);//end * (7.5625f * (value) * value + .9375f) + start;
+                return end * (7.5625f * (value) * value + .9375f) + start;//new Vector3(end.x * (7.5625f * (value) * value + .9375f) + start.x, end.y * (7.5625f * (value) * value + .9375f) + start.y, end.z * (7.5625f * (value) * value + .9375f) + start.z);//end * (7.5625f * (value) * value + .9375f) + start;
             }
             else
             {
                 value -= (2.625f / 2.75f);
-                return new Vector3(end.x * (7.5625f * (value) * value + .984375f) + start.x, end.y * (7.5625f * (value) * value + .984375f) + start.y, end.z * (7.5625f * (value) * value + .984375f) + start.z);//end * (7.5625f * (value) * value + .984375f) + start;
+                return end * (7.5625f * (value) * value + .984375f) + start;//new Vector3(end.x * (7.5625f * (value) * value + .984375f) + start.x, end.y * (7.5625f * (value) * value + .984375f) + start.y, end.z * (7.5625f * (value) * value + .984375f) + start.z);//end * (7.5625f * (value) * value + .984375f) + start;
             }
         }
 
-        public static Vector3 EaseInOutBounce(Vector3 start, Vector3 end, float value)
+        public static Vector3 EaseInOutBounce(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
             float d = 1f;
@@ -556,23 +561,23 @@ namespace Breadnone
             else return new Vector3(EaseOutBounce(0, end.x, value * 2 - d) * 0.5f + end.x * 0.5f + start.x, EaseOutBounce(0, end.y, value * 2 - d) * 0.5f + end.y * 0.5f + start.y, EaseOutBounce(0, end.z, value * 2 - d) * 0.5f + end.z * 0.5f + start.z);//EaseOutBounce(0, end, value * 2 - d) * 0.5f + end * 0.5f + start;
         }
 
-        public static Vector3 EaseInBack(Vector3 start, Vector3 end, float value)
+        public static Vector3 EaseInBack(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
             value /= 1;
             float s = 1.70158f;
-            return new Vector3(end.x * (value) * value * ((s + 1) * value - s) + start.x, end.y * (value) * value * ((s + 1) * value - s) + start.y, end.z * (value) * value * ((s + 1) * value - s) + start.z);//end * (value) * value * ((s + 1) * value - s) + start;
+            return end * (value) * value * ((s + 1) * value - s) + start;//new Vector3(end.x * (value) * value * ((s + 1) * value - s) + start.x, end.y * (value) * value * ((s + 1) * value - s) + start.y, end.z * (value) * value * ((s + 1) * value - s) + start.z);//end * (value) * value * ((s + 1) * value - s) + start;
         }
 
-        public static Vector3 EaseOutBack(Vector3 start, Vector3 end, float value)
+        public static Vector3 EaseOutBack(ref Vector3 start, ref Vector3 end, ref float value)
         {
             float s = 1.70158f;
             end -= start;
             value = (value) - 1;
-            return new Vector3(end.x * ((value) * value * ((s + 1) * value + s) + 1) + start.x, end.y * ((value) * value * ((s + 1) * value + s) + 1) + start.y, end.z * ((value) * value * ((s + 1) * value + s) + 1) + start.z);//end * ((value) * value * ((s + 1) * value + s) + 1) + start;
+            return end * ((value) * value * ((s + 1) * value + s) + 1) + start;//new Vector3(end.x * ((value) * value * ((s + 1) * value + s) + 1) + start.x, end.y * ((value) * value * ((s + 1) * value + s) + 1) + start.y, end.z * ((value) * value * ((s + 1) * value + s) + 1) + start.z);//end * ((value) * value * ((s + 1) * value + s) + 1) + start;
         }
 
-        public static Vector3 EaseInOutBack(Vector3 start, Vector3 end, float value)
+        public static Vector3 EaseInOutBack(ref Vector3 start, ref Vector3 end, ref float value)
         {
             float s = 1.70158f;
             end -= start;
@@ -580,14 +585,14 @@ namespace Breadnone
             if ((value) < 1)
             {
                 s *= (1.525f);
-                return new Vector3(end.x * 0.5f * (value * value * (((s) + 1) * value - s)) + start.x, end.y * 0.5f * (value * value * (((s) + 1) * value - s)) + start.y, end.z * 0.5f * (value * value * (((s) + 1) * value - s)) + start.z);//end * 0.5f * (value * value * (((s) + 1) * value - s)) + start;
+                return end * 0.5f * (value * value * (((s) + 1) * value - s)) + start;//new Vector3(end.x * 0.5f * (value * value * (((s) + 1) * value - s)) + start.x, end.y * 0.5f * (value * value * (((s) + 1) * value - s)) + start.y, end.z * 0.5f * (value * value * (((s) + 1) * value - s)) + start.z);//end * 0.5f * (value * value * (((s) + 1) * value - s)) + start;
             }
             value -= 2;
             s *= (1.525f);
-            return new Vector3(end.x * 0.5f * ((value) * value * (((s) + 1) * value + s) + 2) + start.x, end.y * 0.5f * ((value) * value * (((s) + 1) * value + s) + 2) + start.y, end.z * 0.5f * ((value) * value * (((s) + 1) * value + s) + 2) + start.z);//end * 0.5f * ((value) * value * (((s) + 1) * value + s) + 2) + start;
+            return end * 0.5f * ((value) * value * (((s) + 1) * value + s) + 2) + start;//new Vector3(end.x * 0.5f * ((value) * value * (((s) + 1) * value + s) + 2) + start.x, end.y * 0.5f * ((value) * value * (((s) + 1) * value + s) + 2) + start.y, end.z * 0.5f * ((value) * value * (((s) + 1) * value + s) + 2) + start.z);//end * 0.5f * ((value) * value * (((s) + 1) * value + s) + 2) + start;
         }
 
-        public static Vector3 EaseInElastic(Vector3 start, Vector3 end, float value)
+        public static Vector3 EaseInElastic(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
 //x
@@ -646,7 +651,7 @@ namespace Breadnone
             return new Vector3(-(a * Mathf.Pow(2, 10 * (value -= 1)) * Mathf.Sin((value * d - s) * (2 * Mathf.PI) / p)) + start.x, -(aa * Mathf.Pow(2, 10 * (value -= 1)) * Mathf.Sin((value * dd - ss) * (2 * Mathf.PI) / pp)) + start.y, -(aaa * Mathf.Pow(2, 10 * (value -= 1)) * Mathf.Sin((value * ddd - sss) * (2 * Mathf.PI) / ppp)) + start.z);//-(a * Mathf.Pow(2, 10 * (value -= 1)) * Mathf.Sin((value * d - s) * (2 * Mathf.PI) / p)) + start;
         }
 
-        public static Vector3 EaseOutElastic(Vector3 start,Vector3 end, float value)
+        public static Vector3 EaseOutElastic(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
 //x
@@ -711,7 +716,7 @@ namespace Breadnone
 
             return new Vector3((a * Mathf.Pow(2, -10 * value) * Mathf.Sin((value * d - s) * (2 * Mathf.PI) / p) + end.x + start.x), (aa * Mathf.Pow(2, -10 * value) * Mathf.Sin((value * dd - ss) * (2 * Mathf.PI) / pp) + end.y + start.y), (aaa * Mathf.Pow(2, -10 * value) * Mathf.Sin((value * ddd - sss) * (2 * Mathf.PI) / ppp) + end.z + start.z));//(a * Mathf.Pow(2, -10 * value) * Mathf.Sin((value * d - s) * (2 * Mathf.PI) / p) + end + start);
         }
-        public static Vector3 EaseInOutElastic(Vector3 start, Vector3 end, float value)
+        public static Vector3 EaseInOutElastic(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
 
@@ -1137,7 +1142,7 @@ namespace Breadnone
         /// </summary>
         /// <param name="easingFunction">The enum associated with the easing function.</param>
         /// <returns>The easing function</returns>
-        public static Function GetEasingFunction(in Ease easingFunction)
+        public static Function GetEasingFunction(Ease easingFunction)
         {
             if (easingFunction == Ease.EaseInQuad)
             {
@@ -1303,78 +1308,78 @@ namespace Breadnone
         }
 
         //Easy to manage this way
-        public static Vector3 ValEase(in Ease easingFunction, in Vector3 a, in Vector3 b, in float value)
+        public static Vector3 ValEase(Ease easingFunction, Vector3 a, Vector3 b, float value)
         {
             switch (easingFunction)
             {
                 case Ease.EaseInQuad:
-                    return EaseInQuad(a, b, value);
+                    return EaseInQuad(ref a, ref b, ref value);
                 case Ease.EaseOutQuad:
-                    return EaseOutQuad(a, b, value);
+                    return EaseOutQuad(ref a, ref b, ref value);
                 case Ease.EaseInOutQuad:
-                    return EaseInOutQuad(a, b, value);
+                    return EaseInOutQuad(ref a, ref b, ref value);
                 case Ease.EaseInCubic:
-                    return EaseInCubic(a, b, value);
+                    return EaseInCubic(ref a, ref b, ref value);
                 case Ease.EaseOutCubic:
-                    return EaseOutCubic(a, b, value);
+                    return EaseOutCubic(ref a, ref b, ref value);
                 case Ease.EaseInOutCubic:
-                    return EaseInOutCubic(a, b, value);
+                    return EaseInOutCubic(ref a, ref b, ref value);
                 case Ease.EaseInQuart:
-                    return EaseInQuart(a, b, value);
+                    return EaseInQuart(ref a, ref b, ref value);
                 case Ease.EaseOutQuart:
-                    return EaseOutQuart(a, b, value);
+                    return EaseOutQuart(ref a, ref b, ref value);
                 case Ease.EaseInOutQuart:
-                    return EaseInOutQuart(a, b, value);
+                    return EaseInOutQuart(ref a, ref b, ref value);
                 case Ease.EaseInQuint:
-                    return EaseInQuint(a, b, value);
+                    return EaseInQuint(ref a, ref b, ref value);
                 case Ease.EaseOutQuint:
-                    return EaseOutQuint(a, b, value);
+                    return EaseOutQuint(ref a, ref b, ref value);
                 case Ease.EaseInOutQuint:
-                    return EaseInOutQuint(a, b, value);
+                    return EaseInOutQuint(ref a, ref b, ref value);
                 case Ease.EaseInSine:
-                    return EaseInSine(a, b, value);
+                    return EaseInSine(ref a, ref b, ref value);
                 case Ease.EaseOutSine:
-                    return EaseOutSine(a, b, value);
+                    return EaseOutSine(ref a, ref b, ref value);
                 case Ease.EaseInOutSine:
-                    return EaseInOutSine(a, b, value);
+                    return EaseInOutSine(ref a, ref b, ref value);
                 case Ease.EaseInExpo:
-                    return EaseInExpo(a, b, value);
+                    return EaseInExpo(ref a, ref b, ref value);
                 case Ease.EaseOutExpo:
-                    return EaseOutExpo(a, b, value);
+                    return EaseOutExpo(ref a, ref b, ref value);
                 case Ease.EaseInOutExpo:
-                    return EaseInOutExpo(a, b, value);
+                    return EaseInOutExpo(ref a, ref b, ref value);
                 case Ease.EaseInCirc:
-                    return EaseInCirc(a, b, value);
+                    return EaseInCirc(ref a, ref b, ref value);
                 case Ease.EaseOutCirc:
-                    return EaseOutCirc(a, b, value);
+                    return EaseOutCirc(ref a, ref b, ref value);
                 case Ease.EaseInOutCirc:
-                    return EaseInOutCirc(a, b, value);
+                    return EaseInOutCirc(ref a, ref b, ref value);
                 case Ease.Linear:
-                    return Linear(a, b, value);
+                    return Linear(ref a, ref b, ref value);
                 case Ease.Spring:
-                    return Spring(a, b, value);
+                    return Spring(ref a, ref b, ref value);
                 case Ease.EaseInBounce:
-                    return EaseInBounce(a, b, value);
+                    return EaseInBounce(ref a, ref b, ref value);
                 case Ease.EaseOutBounce:
-                    return EaseOutBounce(a, b, value);
+                    return EaseOutBounce(ref a, ref b, ref value);
                 case Ease.EaseInOutBounce:
-                    return EaseInOutBounce(a, b, value);
+                    return EaseInOutBounce(ref a, ref b, ref value);
                 case Ease.EaseInBack:
-                    return EaseInBack(a, b, value);
+                    return EaseInBack(ref a, ref b, ref value);
                 case Ease.EaseOutBack:
-                    return EaseOutBack(a, b, value);
+                    return EaseOutBack(ref a, ref b, ref value);
                 case Ease.EaseInOutBack:
-                    return EaseInOutBack(a, b, value);
+                    return EaseInOutBack(ref a, ref b, ref value);
                 case Ease.EaseInElastic:
-                    return EaseInElastic(a, b, value);
+                    return EaseInElastic(ref a, ref b, ref value);
                 case Ease.EaseOutElastic:
-                    return EaseOutElastic(a, b, value);
+                    return EaseOutElastic(ref a, ref b, ref value);
                 case Ease.EaseInOutElastic:
-                    return EaseInOutElastic(a, b, value);
+                    return EaseInOutElastic(ref a, ref b, ref value);
             }
             return Vector3.zero;
         }
-        public static float ValEase(in Ease easingFunction, in float a, in float b, in float value)
+        public static float ValEase(Ease easingFunction, float a, float b, float value)
         {
             switch (easingFunction)
             {

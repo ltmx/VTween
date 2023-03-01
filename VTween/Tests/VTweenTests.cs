@@ -299,7 +299,7 @@ public class VTweenTests : MonoBehaviour
         objs = new List<GameObject>();
         distanceAmount = defaultDistance;
     }
-    
+
     public void TestValueFloat()
     {
         if (textVal is object)
@@ -379,7 +379,6 @@ public class VTweenTests : MonoBehaviour
     }
     public void MoveFast()
     {
-        var t = VTween.moveFast(obj, target.position, duration, ease:Ease.Linear);
-        t.TryCancel();
+        VTween.moveFast(obj, target.position, duration, ease:Ease.Linear, loopCount: 2, pingpong: true);
     }
 }

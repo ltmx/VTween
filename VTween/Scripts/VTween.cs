@@ -27,20 +27,86 @@ using System.Collections.Generic;
 namespace Breadnone
 {
     public static class VTween
-    { 
+    {
         #region Fast-Move (low alloc)
-        //Transform trans, Vector3 to, float time, Ease ease, bool localSpace = false, bool unscaledTime = false
-        public static STStructMove moveFast(GameObject gameObject, Vector3 to, float time, float loopCount = 0, Ease ease = Ease.Linear, Action onComplete = null, bool localSpace = false, bool unscaledTime = false)
+        ///<summary>Fast low allocation struct-based tweening.</summary>
+        //GameObject gameObject, Vector3 destination, float time, Ease ease = Ease.Linear, Action onComplete = null, bool local = false, bool unscaledTime = false
+        public static STStructMove moveFast(GameObject gameObject, Vector3 to, float time, Ease ease = Ease.Linear, int loopCount = 0, bool pingpong = false, Action onComplete = null, bool localSpace = false, bool unscaledTime = false)
         {
-            return new STStructMove(gameObject, to, time, loopCount, ease, onComplete, localSpace, unscaledTime);
+            return new STStructMove(gameObject, to, time, ease, loopCount, pingpong, onComplete, localSpace, unscaledTime);
         }
-        public static STStructMoveUI moveFast(VisualElement visualElement, Vector3 to, float time, float loopCount = 0, Ease ease = Ease.Linear, Action onComplete = null, bool unscaledTime = false)
+        ///<summary>Fast low allocation struct-based tweening.</summary>
+        public static STStructMoveUI moveFast(VisualElement visualElement, Vector3 to, float time, Ease ease = Ease.Linear, int loopCount = 0, Action onComplete = null, bool unscaledTime = false)
         {
-            return new STStructMoveUI(visualElement, to, time, loopCount, ease, onComplete, unscaledTime);
+            return new STStructMoveUI(visualElement, to, time, ease, loopCount, onComplete, unscaledTime);
         }
+        ///<summary>Fast low allocation struct-based tweening.</summary>
         public static STStructFollow followFast(GameObject gameObject, Transform target, float speed, Vector3 smoothness)
         {
             return new STStructFollow(gameObject, target, speed, smoothness);
+        }
+        ///<summary>Fast low allocation struct based tweening.</summary>
+        public static STStructRotate rotateFast(GameObject gameObject, float degreeAngle, float time, Vector3 direction, Ease ease = Ease.Linear, Action onComplete = null, bool localSpace = false, bool unscaledTime = false)
+        {
+            return new STStructRotate(gameObject, degreeAngle, direction, time, ease, onComplete, localSpace, unscaledTime);
+        }
+        ///<summary>Fast low allocation struct based tweening.</summary>
+        public static STStructRotateUI rotateFast(VisualElement visualElement, float degreeAngle, float time, Ease ease = Ease.Linear, Action onComplete = null, bool unscaledTime = false)
+        {
+            return new STStructRotateUI(visualElement, degreeAngle, time, ease, onComplete);
+        }
+        ///<summary>Fast low allocation struct-based tweening.</summary>
+        public static STStructScaleUI scaleFast(VisualElement visualElement, Vector3 scale, float time, Ease ease = Ease.Linear, Action onComplete = null, bool unscaledTime = false)
+        {
+            return new STStructScaleUI(visualElement, scale, time, ease, onComplete, unscaledTime);
+        }
+        ///<summary>Fast low allocation struct-based tweening.</summary>
+        public static STStructScale scaleFast(GameObject gameObject, Vector3 scale, float time, Ease ease = Ease.Linear, Action onComplete = null, bool unscaledTime = false)
+        {
+            return new STStructScale(gameObject, scale, time, ease, onComplete, unscaledTime);
+        }
+        ///<summary>Forces cancelling a struct-based tween instance from outside of scope. Not recommended for mass cancelling due to needs to iteration.</summary>
+        public static void TryForceCancel(GameObject gameObject)
+        {
+            Action act = null;
+            int id = gameObject.GetInstanceID();
+
+            for(int i = 0; i < VTweenManager.activeStructTweens.Count; i++)
+            {
+                if(VTweenManager.activeStructTweens[i].id == id)
+                {
+                    act = VTweenManager.activeStructTweens[i].cancel;
+                    break;
+                }
+            } 
+            act.Invoke();
+        }
+        ///<summary>Forces cancel all struct-based tween instance from outside of scope. Not recommended for mass cancelling due to needs to iteration.</summary>
+        public static void TryForceCancelAll()
+        {
+            if(VTweenManager.activeStructTweens.Count == 0)
+                return;
+
+            for(int i = 0; i < VTweenManager.activeStructTweens.Count; i++)
+            {
+                VTweenManager.activeStructTweens[i].cancel.Invoke();
+            } 
+        }
+        ///<summary>Forces cancelling a struct-based tween instance from outside of scope. Not recommended for mass cancelling due to iteration.</summary>
+        public static void TryForceCancel(VisualElement visualElement)
+        {
+            Action act = null;
+            int id = visualElement.GetHashCode();
+
+            for(int i = 0; i < VTweenManager.activeStructTweens.Count; i++)
+            {
+                if(VTweenManager.activeStructTweens[i].id == id)
+                {
+                    act = VTweenManager.activeStructTweens[i].cancel;
+                    break;
+                }
+            } 
+            act.Invoke();
         }
         #endregion
 
@@ -51,7 +117,7 @@ namespace Breadnone
             //return new VTweenMove(gameObject.transform, null, to, duration);// Non pooling solution
             var instance = VExtension.GetInstance<VTweenMove>(gameObject.GetInstanceID());
             var trans = gameObject.transform;
-            instance.SetBaseValues(trans, null, to, trans.position, duration);
+            instance.SetBaseValues(trans, ref to, ref duration);
             return instance;
         }
         ///<summary>Moves object to target position.</summary>
@@ -59,7 +125,7 @@ namespace Breadnone
         {
             var instance = VExtension.GetInstance<VTweenMove>(transform.gameObject.GetInstanceID());
             var trans = transform;
-            instance.SetBaseValues(trans, null, to, trans.position, duration);
+            instance.SetBaseValues(trans, ref to, ref duration);
             return instance;
         }
         ///<summary>Moves object to target position.</summary>
@@ -67,7 +133,8 @@ namespace Breadnone
         {
             var instance = VExtension.GetInstance<VTweenMove>(transform.gameObject.GetInstanceID());
             var trans = transform;
-            instance.SetBaseValues(trans, null, to.position, trans.position, duration);
+            var tpos = to.position;
+            instance.SetBaseValues(trans, ref tpos, ref duration);
             return instance;
         }
         ///<summary>Moves object based on target's transform.</summary>
@@ -75,14 +142,16 @@ namespace Breadnone
         {
             var instance = VExtension.GetInstance<VTweenMove>(gameObject.GetInstanceID());
             var trans = gameObject.transform;
-            instance.SetBaseValues(trans, null, to.position, trans.position, duration);
+            var tpos = to.position;
+            instance.SetBaseValues(trans, ref tpos, ref duration);
             return instance;
         }
         ///<summary>Moves object based on target's ITransform on VisualElement.</summary>
-        public static VTweenMove move(VisualElement visualElement, Vector3 to, float duration)
+        public static VTweenMoveUI move(VisualElement visualElement, Vector3 to, float duration)
         {
-            var instance = VExtension.GetInstance<VTweenMove>(visualElement.GetHashCode());
-            instance.SetBaseValues(null, visualElement.style, to, visualElement.transform.position, duration);
+            var instance = VExtension.GetInstance<VTweenMoveUI>(visualElement.GetHashCode());
+            var t = visualElement.transform.position;
+            instance.SetBaseValues(visualElement, ref to, ref duration);
             return instance;
         }
 
@@ -92,7 +161,7 @@ namespace Breadnone
             var instance = VExtension.GetInstance<VTweenMove>(gameObject.GetInstanceID());
             var trans = gameObject.transform;
             instance.vprops.isLocal = true;
-            instance.SetBaseValues(trans, null, to, trans.localPosition, duration);
+            instance.SetBaseValues(trans, ref to, ref duration);
             return instance;
         }
         ///<summary>Moves object based on target's localTransform.</summary>
@@ -101,7 +170,8 @@ namespace Breadnone
             var instance = VExtension.GetInstance<VTweenMove>(gameObject.GetInstanceID());
             var trans = gameObject.transform;
             instance.vprops.isLocal = true;
-            instance.SetBaseValues(trans, null, to.localPosition, trans.localPosition, duration);
+            var tpos = to.localPosition;
+            instance.SetBaseValues(trans, ref tpos, ref duration);
             return instance;
         }
         ///<summary>Moves object based on target's localTransform.</summary>
@@ -110,7 +180,8 @@ namespace Breadnone
             var instance = VExtension.GetInstance<VTweenMove>(transform.gameObject.GetInstanceID());
             var trans = transform;
             instance.vprops.isLocal = true;
-            instance.SetBaseValues(trans, null, to.localPosition, trans.localPosition, duration);
+            var tpos = to.localPosition;
+            instance.SetBaseValues(trans, ref tpos, ref duration);
             return instance;
         }
         ///<summary>Moves object based on object's X axis.</summary>
@@ -118,7 +189,8 @@ namespace Breadnone
         {
             var instance = VExtension.GetInstance<VTweenMove>(gameObject.GetInstanceID());
             var trans = gameObject.transform;
-            instance.SetBaseValues(trans, null, new Vector3(to, trans.position.y, trans.position.z), trans.position, duration);
+            var t = new Vector3(to, trans.position.y, trans.position.z);
+            instance.SetBaseValues(trans, ref t, ref duration);
             return instance;
         }
         ///<summary>Moves object based on object's X axis.</summary>
@@ -126,15 +198,17 @@ namespace Breadnone
         {
             var instance = VExtension.GetInstance<VTweenMove>(transform.gameObject.GetInstanceID());
             var trans = transform;
-            instance.SetBaseValues(trans, null, new Vector3(to, trans.position.y, trans.position.z), trans.position, duration);
+            var t = new Vector3(to, trans.position.y, trans.position.z);
+            instance.SetBaseValues(trans, ref t, ref duration);
             return instance;
         }
         ///<summary>Moves object based on object's X axis.</summary>
-        public static VTweenMove moveX(VisualElement visualElement, float to, float duration)
+        public static VTweenMoveUI moveX(VisualElement visualElement, float to, float duration)
         {
-            var instance = VExtension.GetInstance<VTweenMove>(visualElement.GetHashCode());
+            var instance = VExtension.GetInstance<VTweenMoveUI>(visualElement.GetHashCode());
             var trans = visualElement.transform;
-            instance.SetBaseValues(null, visualElement.style, new Vector3(to, trans.position.y, trans.position.z), trans.position, duration);
+            var t = new Vector3(to, trans.position.y, trans.position.z);
+            instance.SetBaseValues(visualElement, ref t, ref duration);
             return instance;
         }
         ///<summary>Moves object based on object's X axis localSpace.</summary>
@@ -143,7 +217,8 @@ namespace Breadnone
             var instance = VExtension.GetInstance<VTweenMove>(gameObject.GetInstanceID());
             var trans = gameObject.transform;
             instance.vprops.isLocal = true;
-            instance.SetBaseValues(trans, null, new Vector3(to, trans.localPosition.y, trans.localPosition.z), trans.localPosition, duration);
+            var t = new Vector3(to, trans.localPosition.y, trans.localPosition.z);
+            instance.SetBaseValues(trans, ref t, ref duration);
             return instance;
         }
         ///<summary>Moves object based on object's X axis localSpace.</summary>
@@ -152,7 +227,8 @@ namespace Breadnone
             var instance = new VTweenMove();
             var trans = transform;
             instance.vprops.isLocal = true;
-            instance.SetBaseValues(trans, null, new Vector3(to, trans.localPosition.y, trans.localPosition.z), trans.localPosition, duration);
+            var t = new Vector3(to, trans.localPosition.y, trans.localPosition.z);
+            instance.SetBaseValues(trans, ref t, ref duration);
             return instance;
         }
         ///<summary>Moves object based on object's Y axis.</summary>
@@ -160,7 +236,8 @@ namespace Breadnone
         {
             var instance = VExtension.GetInstance<VTweenMove>(gameObject.GetInstanceID());
             var trans = gameObject.transform;
-            instance.SetBaseValues(trans, null, new Vector3(trans.position.x, to, trans.position.z), trans.position, duration);
+            var t = new Vector3(trans.position.x, to, trans.position.z);
+            instance.SetBaseValues(trans, ref t, ref duration);
             return instance;
         }
         ///<summary>Moves object based on object's Y axis.</summary>
@@ -168,15 +245,17 @@ namespace Breadnone
         {
             var instance = VExtension.GetInstance<VTweenMove>(transform.gameObject.GetInstanceID());
             var trans = transform;
-            instance.SetBaseValues(trans, null, new Vector3(trans.position.x, to, trans.position.z), trans.position, duration);
+            var t = new Vector3(trans.position.x, to, trans.position.z);
+            instance.SetBaseValues(trans, ref t, ref duration);
             return instance;
         }
         ///<summary>Moves object based on object's Y axis of a VisualElement.</summary>
-        public static VTweenMove moveY(VisualElement visualElement, float to, float duration)
+        public static VTweenMoveUI moveY(VisualElement visualElement, float to, float duration)
         {
-            var instance = VExtension.GetInstance<VTweenMove>(visualElement.GetHashCode());
+            var instance = VExtension.GetInstance<VTweenMoveUI>(visualElement.GetHashCode());
             var trans = visualElement.transform;
-            instance.SetBaseValues(null, visualElement.style, new Vector3(trans.position.x, to, trans.position.z), trans.position, duration);
+            var t = new Vector3(trans.position.x, to, trans.position.z);
+            instance.SetBaseValues(visualElement, ref t, ref duration);
             return instance;
         }
         ///<summary>Moves object based on object's Y axis localSpace.</summary>
@@ -185,7 +264,8 @@ namespace Breadnone
             var instance = VExtension.GetInstance<VTweenMove>(gameObject.GetInstanceID());
             var trans = gameObject.transform;
             instance.vprops.isLocal = true;
-            instance.SetBaseValues(trans, null, new Vector3(trans.localPosition.x, to, trans.localPosition.z), trans.localPosition, duration);
+            var t = new Vector3(trans.localPosition.x, to, trans.localPosition.z);
+            instance.SetBaseValues(trans, ref t, ref duration);
             return instance;
         }
         ///<summary>Moves object based on object's Y axis localSpace.</summary>
@@ -194,7 +274,8 @@ namespace Breadnone
             var instance = VExtension.GetInstance<VTweenMove>(transform.gameObject.GetInstanceID());
             var trans = transform;
             instance.vprops.isLocal = true;
-            instance.SetBaseValues(trans, null, new Vector3(trans.localPosition.x, to, trans.localPosition.z), trans.localPosition, duration);
+            var t = new Vector3(trans.localPosition.x, to, trans.localPosition.z);
+            instance.SetBaseValues(trans, ref t, ref duration);
             return instance;
         }
         ///<summary>Moves object based on object's Z axis.</summary>
@@ -202,7 +283,8 @@ namespace Breadnone
         {
             var instance = VExtension.GetInstance<VTweenMove>(gameObject.GetInstanceID());
             var trans = gameObject.transform;
-            instance.SetBaseValues(trans, null, new Vector3(trans.position.x, trans.position.y, to), trans.position, duration);
+            var t = new Vector3(trans.position.x, trans.position.y, to);
+            instance.SetBaseValues(trans, ref t, ref duration);
             return instance;
         }
         ///<summary>Moves object based on object's Z axis.</summary>
@@ -210,7 +292,8 @@ namespace Breadnone
         {
             var instance = VExtension.GetInstance<VTweenMove>(transform.gameObject.GetInstanceID());
             var trans = transform;
-            instance.SetBaseValues(trans, null, new Vector3(trans.position.x, trans.position.y, to), trans.position, duration);
+            var t = new Vector3(trans.position.x, trans.position.y, to);
+            instance.SetBaseValues(trans, ref t, ref duration);
             return instance;
         }
         ///<summary>Moves object based on object's local Z axis.</summary>
@@ -219,7 +302,8 @@ namespace Breadnone
             var instance = VExtension.GetInstance<VTweenMove>(gameObject.GetInstanceID());
             var trans = gameObject.transform;
             instance.vprops.isLocal = true;
-            instance.SetBaseValues(trans, null, new Vector3(trans.localPosition.x, trans.localPosition.y, to), trans.localPosition, duration);
+            var t = new Vector3(trans.localPosition.x, trans.localPosition.y, to);
+            instance.SetBaseValues(trans, ref t, ref duration);
             return instance;
         }
         ///<summary>Moves object based on object's local Z axis.</summary>
@@ -228,7 +312,8 @@ namespace Breadnone
             var instance = VExtension.GetInstance<VTweenMove>(transform.gameObject.GetInstanceID());
             var trans = transform;
             instance.vprops.isLocal = true;
-            instance.SetBaseValues(trans, null, new Vector3(trans.localPosition.x, trans.localPosition.y, to), trans.localPosition, duration);
+            var t = new Vector3(trans.localPosition.x, trans.localPosition.y, to);
+            instance.SetBaseValues(trans, ref t, ref duration);
             return instance;
         }
         #endregion
@@ -402,7 +487,7 @@ namespace Breadnone
         public static VTweenExecLater execLater(float time, Action callback)
         {
             var instance = new VTweenExecLater();
-            instance.SetBaseValues(time, callback);
+            instance.SetBaseValues(ref time, callback);
             instance.Init();
             return instance;
         }
