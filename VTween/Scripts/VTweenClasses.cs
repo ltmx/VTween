@@ -25,7 +25,6 @@ using UnityEngine;
 using System;
 using UnityEngine.UIElements;
 using System.Collections.Generic;
-using System.Buffers;
 
 //Main VTween classes....
 namespace Breadnone.Extension
@@ -222,7 +221,10 @@ namespace Breadnone.Extension
             }
 
             if (removeFromActiveList)
+            {
                 VTweenManager.RemoveFromActiveTween(this);
+                this.state = TweenState.None;
+            }
             
             registers.Clear();
         }
@@ -371,6 +373,15 @@ namespace Breadnone.Extension
             AddRegister(t);
             return this;
         }
+        public override VTweenMove setInactiveOnComplete(bool state)
+        {
+            if(!state)
+                return this;
+
+            void callback(){fromIns.gameObject.SetActive(state);}
+            AddRegister(new EventVRegister{callback = callback, id = 2});
+            return this;
+        }
     }
 
     ///<summary>Move class. Moves object to target position.</summary>
@@ -437,11 +448,6 @@ namespace Breadnone.Extension
             defaultPosition = fromPosition;
             return this;
         }
-        ///<summary>Sets target to look at while moving.</summary>
-        public VTweenMoveUI setLookAt(Vector3 targetToLookAt)
-        {
-            return this;
-        }
         ///<summary>Destroys gameObject when completed. VisualElements will be removed from parents hierarchy.</summary>
         public override VTweenMoveUI setDestroy(bool state)
         {
@@ -451,6 +457,15 @@ namespace Breadnone.Extension
             void callback() { ((VisualElement)fromInsUi).RemoveFromHierarchy(); }
             var t = new EventVRegister { callback = callback, id = 2 };
             AddRegister(t);
+            return this;
+        }
+        public override VTweenMoveUI setInactiveOnComplete(bool state)
+        {
+            if(!state)
+                return this;
+
+            void callback(){fromInsUi.SetEnabled(false);}
+            AddRegister(new EventVRegister{callback = callback, id = 2});
             return this;
         }
     }
@@ -1345,6 +1360,10 @@ namespace Breadnone.Extension
     ///<summary>Base abstract class.</summary>
     public abstract class VClass<T> : VTweenClass where T : VTweenClass
     {
+        public virtual T setInactiveOnComplete(bool state)
+        {
+            return this as T;
+        }
         ///<summary>Will be called when tweening was completed</summary>
         public T setOnComplete(Action callback)
         {

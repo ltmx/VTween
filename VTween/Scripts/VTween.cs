@@ -26,6 +26,13 @@ using System.Collections.Generic;
 
 namespace Breadnone
 {
+    public enum VAxis
+    {
+        XYZ,
+        X,
+        Y,
+        Z
+    }
     public static class VTween
     {
         #region Fast-Move (low alloc)
@@ -64,6 +71,16 @@ namespace Breadnone
         public static STStructScale scaleFast(GameObject gameObject, Vector3 scale, float time, Ease ease = Ease.Linear, Action onComplete = null, bool unscaledTime = false)
         {
             return new STStructScale(gameObject, scale, time, ease, onComplete, unscaledTime);
+        }
+        ///<sumary>Interpolates float value.</summary>
+        public static STStructValue valueFast(float from, float to, float time, Action<float> callback, Ease ease = Ease.Linear)
+        {
+            return new STStructValue(from, to, time, callback, ease);
+        }
+        ///<summary>Interpolates Vector3 value.</summary>
+        public static STStructValueVector3 valueFast(Vector3 from, Vector3 to, float time, Action<Vector3> callback, Ease ease = Ease.Linear)
+        {
+            return new STStructValueVector3(from, to, time, callback, ease);
         }
         ///<summary>Forces cancelling a struct-based tween instance from outside of scope. Not recommended for mass cancelling due to needs to iteration.</summary>
         public static void TryForceCancel(GameObject gameObject)

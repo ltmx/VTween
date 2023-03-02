@@ -101,7 +101,7 @@ namespace Breadnone.Extension
         ///<summary>Removes from active list.</summary>
         public static void RemoveFromActiveTween(VTweenClass vtween)
         {
-            vtween.state = TweenState.None;
+            
             InsertRemoveUnused(vtween);
             activeTweens.Remove(vtween);
         }

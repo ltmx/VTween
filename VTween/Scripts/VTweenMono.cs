@@ -22,7 +22,7 @@ using UnityEngine.SceneManagement;
 using System.Collections;
 using System.Collections.Generic;
 using Breadnone.Extension;
-
+using Breadnone;
 
 public class VTweenMono : MonoBehaviour
 {

@@ -259,7 +259,7 @@ namespace Breadnone.Extension
     }
     public ref struct STStructValue
     {
-        public STStructValue(float from, float to, float time, Action callback, Ease ease = Ease.Linear, Action onComplete = null, bool unscaledTime = false)
+        public STStructValue(float from, float to, float time, Action<float> callback, Ease ease = Ease.Linear, Action onComplete = null, bool unscaledTime = false)
         {
             var sevent = new VSCore();
             sevent.registers = new StructVRegister[2];
@@ -274,6 +274,33 @@ namespace Breadnone.Extension
 
                 runningValue = VEasings.ValEase(ease, from, to, (runningTime / time));
                 sevent.CalcRuntime(ref runningTime);
+                callback.Invoke(runningValue);
+            }
+
+            sevent.onStart(call);
+            sevent.onComplete(onComplete);
+            sevent.ChangeState(TweenState.Tweening);
+            VTweenManager.FastStructInsertToActive(() => sevent.Exec(), () => sevent.ExecOnComplete(false), sevent.sid);
+        }
+    }
+    public ref struct STStructValueVector3
+    {
+        public STStructValueVector3(Vector3 from, Vector3 to, float time, Action<Vector3> callback, Ease ease = Ease.Linear, Action onComplete = null, bool unscaledTime = false)
+        {
+            var sevent = new VSCore();
+            sevent.registers = new StructVRegister[2];
+            float runningTime = 0f;
+            Vector3 runningValue;
+            sevent.sid = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
+
+            void call()
+            {
+                if (sevent.IfCompleted(ref runningTime, ref time))
+                    return;
+
+                runningValue = VEasings.ValEase(ease, from, to, (runningTime / time));
+                sevent.CalcRuntime(ref runningTime);
+                callback.Invoke(runningValue);
             }
 
             sevent.onStart(call);
