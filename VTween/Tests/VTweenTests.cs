@@ -218,7 +218,7 @@ public class VTweenTests : MonoBehaviour
                     UnityEngine.Debug.Log(t.Elapsed.TotalSeconds);
                     t.Stop();
                 }
-            }).setEase(easeTest).setLoop(loopCount).setPingPong(pingPong);
+            }).setOnCompleteRepeat(true).setEase(easeTest).setLoop(loopCount).setPingPong(pingPong);
         }
     }
     public void TestDelayedMoveFromTarget()

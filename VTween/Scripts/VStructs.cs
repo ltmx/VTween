@@ -1,6 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using Breadnone;
 using System;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -183,7 +180,7 @@ namespace Breadnone.Extension
         public STStructRotateUI(VisualElement visualElement, float degreeAngle, float time, Ease ease = Ease.Linear, Action onComplete = null, bool unscaledTime = false)
         {
             var sevent = new VSCore();
-            sevent.registers = new StructVRegister[2];
+            sevent.registers = new StructVRegister[3];
             float runningTime = 0f;
             sevent.sid = visualElement.GetHashCode();
 
@@ -323,7 +320,6 @@ namespace Breadnone.Extension
         public int loopAmount { get; set; }
         public int loopCounter { get; set; }
         public bool pingPong { get; set; }
-        public int pingPongCounter { get; set; }
         public void Exec()
         {
             if (state != TweenState.Tweening)

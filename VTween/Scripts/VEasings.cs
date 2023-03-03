@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Runtime.CompilerServices;
 
 namespace Breadnone
 {
@@ -356,32 +357,33 @@ namespace Breadnone
             return a * Mathf.Pow(2, -10 * (value -= 1)) * Mathf.Sin((value * d - s) * (2 * Mathf.PI) / p) * 0.5f + end + start;
         }
 //////////
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 Linear(ref Vector3 start, ref Vector3 end, ref float value)
         {
             return Vector3.Lerp(start, end, value);
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 Spring(ref Vector3 start, ref Vector3 end, ref float value)
         {
             value = Mathf.Clamp01(value);
             value = (Mathf.Sin(value * Mathf.PI * (0.2f + 2.5f * value * value * value)) * Mathf.Pow(1f - value, 2.2f) + value) * (1f + (1.2f * (1f - value)));
             return  new Vector3(start.x + (end.x - start.x), start.y + (end.y - start.y), start.z + (end.z - start.z));//start + (end - start) * value;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 EaseInQuad(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
             return end * value * value + start;
             //return new Vector3(end.x * value * value + start.x, end.y * value * value + start.y, end.z * value * value + start.z);//end * value * value + start;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 EaseOutQuad(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
             return -end * value * (value - 2) + start;
             //return new Vector3(-end.x * value * (value - 2) + start.x, -end.y * value * (value - 2) + start.y, -end.z * value * (value - 2) + start.z);//-end * value * (value - 2) + start;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 EaseInOutQuad(ref Vector3 start, ref Vector3 end, ref float value)
         {
             value /= .5f;
@@ -390,14 +392,14 @@ namespace Breadnone
             value--;
             return -end * 0.5f * (value * (value - 2) - 1) + start;//new Vector3(-end.x * 0.5f * (value * (value - 2) - 1) + start.x, -end.y * 0.5f * (value * (value - 2) - 1) + start.y, -end.z * 0.5f * (value * (value - 2) - 1) + start.z);//-end * 0.5f * (value * (value - 2) - 1) + start;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 EaseInCubic(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
             return end * value * value * value + start;
             //return new Vector3(end.x * value * value * value + start.x, end.y * value * value * value + start.y, end.z * value * value * value + start.z);//end * value * value * value + start;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 EaseOutCubic(ref Vector3 start, ref Vector3 end, ref float value)
         {
             value--;
@@ -405,7 +407,7 @@ namespace Breadnone
             return end * (value * value * value + 1) + start;
             //return new Vector3(end.x * (value * value * value + 1) + start.x, end.y * (value * value * value + 1) + start.y, end.z * (value * value * value + 1) + start.z); //end * (value * value * value + 1) + start;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 EaseInOutCubic(ref Vector3 start, ref Vector3 end, ref float value)
         {
             value /= .5f;
@@ -414,20 +416,20 @@ namespace Breadnone
             value -= 2;
             return end * 0.5f * (value * value * value + 2) + start;//new Vector3(end.x * 0.5f * (value * value * value + 2) + start.x, end.y * 0.5f * (value * value * value + 2) + start.y, end.z * 0.5f * (value * value * value + 2) + start.z);//end * 0.5f * (value * value * value + 2) + start;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 EaseInQuart(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
             return end * value * value * value * value + start;//new Vector3(end.x * value * value * value * value + start.x, end.y * value * value * value * value + start.y, end.z * value * value * value * value + start.z);//end * value * value * value * value + start;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 EaseOutQuart(ref Vector3 start, ref Vector3 end, ref float value)
         {
             value--;
             end -= start;
             return new Vector3(-end.x * (value * value * value * value - 1) + start.x, -end.y * (value * value * value * value - 1) + start.y, -end.z * (value * value * value * value - 1) + start.z);//-end * (value * value * value * value - 1) + start;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 EaseInOutQuart(ref Vector3 start, ref Vector3 end, ref float value)
         {
             value /= .5f;
@@ -436,20 +438,20 @@ namespace Breadnone
             value -= 2;
             return -end * 0.5f * (value * value * value * value - 2) + start; //new Vector3(-end.x * 0.5f * (value * value * value * value - 2) + start.x, -end.y * 0.5f * (value * value * value * value - 2) + start.y, -end.z * 0.5f * (value * value * value * value - 2) + start.z);//-end * 0.5f * (value * value * value * value - 2) + start;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 EaseInQuint(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
             return end * value * value * value * value * value + start;//new Vector3(end.x * value * value * value * value * value + start.x, end.y * value * value * value * value * value + start.y, end.z * value * value * value * value * value + start.z);//end * value * value * value * value * value + start;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 EaseOutQuint(ref Vector3 start, ref Vector3 end, ref float value)
         {
             value--;
             end -= start;
             return end * (value * value * value * value * value + 1) + start;//new Vector3(end.x * (value * value * value * value * value + 1) + start.x, end.y * (value * value * value * value * value + 1) + start.y, end.z * (value * value * value * value * value + 1) + start.z);//end * (value * value * value * value * value + 1) + start;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 EaseInOutQuint(ref Vector3 start, ref Vector3 end, ref float value)
         {
             value /= .5f;
@@ -458,37 +460,37 @@ namespace Breadnone
             value -= 2;
             return end * 0.5f * (value * value * value * value * value + 2) + start;//new Vector3(end.x * 0.5f * (value * value * value * value * value + 2) + start.x, end.y * 0.5f * (value * value * value * value * value + 2) + start.y, end.z * 0.5f * (value * value * value * value * value + 2) + start.z);//end * 0.5f * (value * value * value * value * value + 2) + start;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 EaseInSine(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
             return -end * Mathf.Cos(value * (Mathf.PI * 0.5f)) + end + start;//new Vector3(-end.x * Mathf.Cos(value * (Mathf.PI * 0.5f)) + end.x + start.x, -end.y * Mathf.Cos(value * (Mathf.PI * 0.5f)) + end.y + start.y, -end.z * Mathf.Cos(value * (Mathf.PI * 0.5f)) + end.z + start.z);//-end * Mathf.Cos(value * (Mathf.PI * 0.5f)) + end + start;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 EaseOutSine(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
             return end * Mathf.Sin(value * (Mathf.PI * 0.5f)) + start;//new Vector3(end.x * Mathf.Sin(value * (Mathf.PI * 0.5f)) + start.x, end.y * Mathf.Sin(value * (Mathf.PI * 0.5f)) + start.y, end.z * Mathf.Sin(value * (Mathf.PI * 0.5f)) + start.z);//end * Mathf.Sin(value * (Mathf.PI * 0.5f)) + start;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 EaseInOutSine(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
             return -end * 0.5f * (Mathf.Cos(Mathf.PI * value) - 1) + start;// new Vector3(-end.x * 0.5f * (Mathf.Cos(Mathf.PI * value) - 1) + start.x, -end.y * 0.5f * (Mathf.Cos(Mathf.PI * value) - 1) + start.y, -end.z * 0.5f * (Mathf.Cos(Mathf.PI * value) - 1) + start.z);//-end * 0.5f * (Mathf.Cos(Mathf.PI * value) - 1) + start;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 EaseInExpo(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
             return end * Mathf.Pow(2, 10 * (value - 1)) + start;//new Vector3(end.x * Mathf.Pow(2, 10 * (value - 1)) + start.x, end.y * Mathf.Pow(2, 10 * (value - 1)) + start.y, end.z * Mathf.Pow(2, 10 * (value - 1)) + start.z);//end * Mathf.Pow(2, 10 * (value - 1)) + start;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 EaseOutExpo(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
             return end * (-Mathf.Pow(2, -10 * value) + 1) + start;//new Vector3(end.x * (-Mathf.Pow(2, -10 * value) + 1) + start.x, end.y * (-Mathf.Pow(2, -10 * value) + 1) + start.y, end.z * (-Mathf.Pow(2, -10 * value) + 1) + start.z);//end * (-Mathf.Pow(2, -10 * value) + 1) + start;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]  
         public static Vector3 EaseInOutExpo(ref Vector3 start, ref Vector3 end, ref float value)
         {
             value /= .5f;
@@ -497,21 +499,21 @@ namespace Breadnone
             value--;
             return end * 0.5f * (-Mathf.Pow(2, -10 * value) + 2) + start;//new Vector3(end.x * 0.5f * (-Mathf.Pow(2, -10 * value) + 2) + start.x, end.y * 0.5f * (-Mathf.Pow(2, -10 * value) + 2) + start.y, end.z * 0.5f * (-Mathf.Pow(2, -10 * value) + 2) + start.z);//end * 0.5f * (-Mathf.Pow(2, -10 * value) + 2) + start;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 EaseInCirc(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
             return -end * (Mathf.Sqrt(1 - value * value) - 1) + start;
             //return new Vector3(-end.x * (Mathf.Sqrt(1 - value * value) - 1) + start.x, -end.y * (Mathf.Sqrt(1 - value * value) - 1) + start.y, -end.z * (Mathf.Sqrt(1 - value * value) - 1) + start.z);//-end * (Mathf.Sqrt(1 - value * value) - 1) + start;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 EaseOutCirc(ref Vector3 start, ref Vector3 end, ref float value)
         {
             value--;
             end -= start;
             return end * Mathf.Sqrt(1 - value * value) + start;//new Vector3(end.x * Mathf.Sqrt(1 - value * value) + start.x, end.y * Mathf.Sqrt(1 - value * value) + start.y, end.z * Mathf.Sqrt(1 - value * value) + start.z);//end * Mathf.Sqrt(1 - value * value) + start;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 EaseInOutCirc(ref Vector3 start, ref Vector3 end, ref float value)
         {
             value /= .5f;
@@ -520,13 +522,13 @@ namespace Breadnone
             value -= 2;
             return end * 0.5f * (Mathf.Sqrt(1 - value * value) + 1) + start;//new Vector3(end.x * 0.5f * (Mathf.Sqrt(1 - value * value) + 1) + start.x, end.y * 0.5f * (Mathf.Sqrt(1 - value * value) + 1) + start.y, end.z * 0.5f * (Mathf.Sqrt(1 - value * value) + 1) + start.z);//end * 0.5f * (Mathf.Sqrt(1 - value * value) + 1) + start;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 EaseInBounce(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
             return new Vector3(end.x - EaseOutBounce(0, end.x, 1f) + start.x, end.y - EaseOutBounce(0, end.y, 1f) + start.y, end.z - EaseOutBounce(0, end.z, 1f) + start.z);//end - EaseOutBounce(0, end, d) + start;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 EaseOutBounce(ref Vector3 start, ref Vector3 end, ref float value)
         {
             value /= 1f;
@@ -552,7 +554,7 @@ namespace Breadnone
                 return end * (7.5625f * (value) * value + .984375f) + start;//new Vector3(end.x * (7.5625f * (value) * value + .984375f) + start.x, end.y * (7.5625f * (value) * value + .984375f) + start.y, end.z * (7.5625f * (value) * value + .984375f) + start.z);//end * (7.5625f * (value) * value + .984375f) + start;
             }
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 EaseInOutBounce(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
@@ -560,7 +562,7 @@ namespace Breadnone
             if (value < d * 0.5f) return new Vector3(EaseInBounce(0, end.x, value * 2) * 0.5f + start.x, EaseInBounce(0, end.y, value * 2) * 0.5f + start.y, EaseInBounce(0, end.z, value * 2) * 0.5f + start.z);//EaseInBounce(0, end, value * 2) * 0.5f + start;
             else return new Vector3(EaseOutBounce(0, end.x, value * 2 - d) * 0.5f + end.x * 0.5f + start.x, EaseOutBounce(0, end.y, value * 2 - d) * 0.5f + end.y * 0.5f + start.y, EaseOutBounce(0, end.z, value * 2 - d) * 0.5f + end.z * 0.5f + start.z);//EaseOutBounce(0, end, value * 2 - d) * 0.5f + end * 0.5f + start;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 EaseInBack(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
@@ -568,7 +570,7 @@ namespace Breadnone
             float s = 1.70158f;
             return end * (value) * value * ((s + 1) * value - s) + start;//new Vector3(end.x * (value) * value * ((s + 1) * value - s) + start.x, end.y * (value) * value * ((s + 1) * value - s) + start.y, end.z * (value) * value * ((s + 1) * value - s) + start.z);//end * (value) * value * ((s + 1) * value - s) + start;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 EaseOutBack(ref Vector3 start, ref Vector3 end, ref float value)
         {
             float s = 1.70158f;
@@ -576,7 +578,7 @@ namespace Breadnone
             value = (value) - 1;
             return end * ((value) * value * ((s + 1) * value + s) + 1) + start;//new Vector3(end.x * ((value) * value * ((s + 1) * value + s) + 1) + start.x, end.y * ((value) * value * ((s + 1) * value + s) + 1) + start.y, end.z * ((value) * value * ((s + 1) * value + s) + 1) + start.z);//end * ((value) * value * ((s + 1) * value + s) + 1) + start;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 EaseInOutBack(ref Vector3 start, ref Vector3 end, ref float value)
         {
             float s = 1.70158f;
@@ -591,7 +593,7 @@ namespace Breadnone
             s *= (1.525f);
             return end * 0.5f * ((value) * value * (((s) + 1) * value + s) + 2) + start;//new Vector3(end.x * 0.5f * ((value) * value * (((s) + 1) * value + s) + 2) + start.x, end.y * 0.5f * ((value) * value * (((s) + 1) * value + s) + 2) + start.y, end.z * 0.5f * ((value) * value * (((s) + 1) * value + s) + 2) + start.z);//end * 0.5f * ((value) * value * (((s) + 1) * value + s) + 2) + start;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 EaseInElastic(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
@@ -650,7 +652,7 @@ namespace Breadnone
 
             return new Vector3(-(a * Mathf.Pow(2, 10 * (value -= 1)) * Mathf.Sin((value * d - s) * (2 * Mathf.PI) / p)) + start.x, -(aa * Mathf.Pow(2, 10 * (value -= 1)) * Mathf.Sin((value * dd - ss) * (2 * Mathf.PI) / pp)) + start.y, -(aaa * Mathf.Pow(2, 10 * (value -= 1)) * Mathf.Sin((value * ddd - sss) * (2 * Mathf.PI) / ppp)) + start.z);//-(a * Mathf.Pow(2, 10 * (value -= 1)) * Mathf.Sin((value * d - s) * (2 * Mathf.PI) / p)) + start;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 EaseOutElastic(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;
@@ -716,6 +718,7 @@ namespace Breadnone
 
             return new Vector3((a * Mathf.Pow(2, -10 * value) * Mathf.Sin((value * d - s) * (2 * Mathf.PI) / p) + end.x + start.x), (aa * Mathf.Pow(2, -10 * value) * Mathf.Sin((value * dd - ss) * (2 * Mathf.PI) / pp) + end.y + start.y), (aaa * Mathf.Pow(2, -10 * value) * Mathf.Sin((value * ddd - sss) * (2 * Mathf.PI) / ppp) + end.z + start.z));//(a * Mathf.Pow(2, -10 * value) * Mathf.Sin((value * d - s) * (2 * Mathf.PI) / p) + end + start);
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 EaseInOutElastic(ref Vector3 start, ref Vector3 end, ref float value)
         {
             end -= start;

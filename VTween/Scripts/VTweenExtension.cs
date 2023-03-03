@@ -27,7 +27,7 @@ using System.Reflection;
 namespace Breadnone.Extension
 {
     ///<summary>Delayed execution. Respects both scaled/unscaled time</summary>
-    public class VTweenExecLater : VClass<VTweenExecLater>
+    public sealed class VTweenExecLater : VClass<VTweenExecLater>
     {
         Action callback;
         bool unscaledTime;

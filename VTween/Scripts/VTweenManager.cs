@@ -20,6 +20,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
+using System.Buffers;
 
 namespace Breadnone.Extension
 {
@@ -101,23 +102,19 @@ namespace Breadnone.Extension
         ///<summary>Removes from active list.</summary>
         public static void RemoveFromActiveTween(VTweenClass vtween)
         {
-            
-            InsertRemoveUnused(vtween);
-            activeTweens.Remove(vtween);
-        }
-        ///<summary>Removes from active list and returns back to the pool.</summary>
-        public static void InsertRemoveUnused(VTweenClass vtween)
-        {
             for (int i = 0; i < unusedTweens.Length; i++)
             {
                 if (unusedTweens[i] is null)
                 {
                     vtween.DefaultProperties();
                     unusedTweens[i] = vtween;
-                    return;
+                    break;
                 }
             }
+
+            activeTweens.Remove(vtween);
         }
+
         ///<summary>Acts as background worker.</summary>
         private static async void VTweenWorker()
         {

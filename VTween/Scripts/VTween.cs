@@ -21,8 +21,7 @@ using UnityEngine;
 using Breadnone.Extension;
 using UnityEngine.UIElements;
 using System;
-using System.Collections;
-using System.Collections.Generic;
+
 
 namespace Breadnone
 {
@@ -38,49 +37,49 @@ namespace Breadnone
         #region Fast-Move (low alloc)
         ///<summary>Fast low allocation struct-based tweening.</summary>
         //GameObject gameObject, Vector3 destination, float time, Ease ease = Ease.Linear, Action onComplete = null, bool local = false, bool unscaledTime = false
-        public static STStructMove moveFast(GameObject gameObject, Vector3 to, float time, Ease ease = Ease.Linear, int loopCount = 0, bool pingpong = false, Action onComplete = null, bool localSpace = false, bool unscaledTime = false)
+        public static void moveFast(GameObject gameObject, Vector3 to, float time, Ease ease = Ease.Linear, int loopCount = 0, bool pingpong = false, Action onComplete = null, bool localSpace = false, bool unscaledTime = false)
         {
-            return new STStructMove(gameObject, to, time, ease, loopCount, pingpong, onComplete, localSpace, unscaledTime);
+            new STStructMove(gameObject, to, time, ease, loopCount, pingpong, onComplete, localSpace, unscaledTime);
         }
         ///<summary>Fast low allocation struct-based tweening.</summary>
-        public static STStructMoveUI moveFast(VisualElement visualElement, Vector3 to, float time, Ease ease = Ease.Linear, int loopCount = 0, Action onComplete = null, bool unscaledTime = false)
+        public static void moveFast(VisualElement visualElement, Vector3 to, float time, Ease ease = Ease.Linear, int loopCount = 0, Action onComplete = null, bool unscaledTime = false)
         {
-            return new STStructMoveUI(visualElement, to, time, ease, loopCount, onComplete, unscaledTime);
+            new STStructMoveUI(visualElement, to, time, ease, loopCount, onComplete, unscaledTime);
         }
         ///<summary>Fast low allocation struct-based tweening.</summary>
-        public static STStructFollow followFast(GameObject gameObject, Transform target, float speed, Vector3 smoothness)
+        public static void followFast(GameObject gameObject, Transform target, float speed, Vector3 smoothness)
         {
-            return new STStructFollow(gameObject, target, speed, smoothness);
+            new STStructFollow(gameObject, target, speed, smoothness);
         }
         ///<summary>Fast low allocation struct based tweening.</summary>
-        public static STStructRotate rotateFast(GameObject gameObject, float degreeAngle, float time, Vector3 direction, Ease ease = Ease.Linear, Action onComplete = null, bool localSpace = false, bool unscaledTime = false)
+        public static void rotateFast(GameObject gameObject, float degreeAngle, float time, Vector3 direction, Ease ease = Ease.Linear, Action onComplete = null, bool localSpace = false, bool unscaledTime = false)
         {
-            return new STStructRotate(gameObject, degreeAngle, direction, time, ease, onComplete, localSpace, unscaledTime);
+            new STStructRotate(gameObject, degreeAngle, direction, time, ease, onComplete, localSpace, unscaledTime);
         }
         ///<summary>Fast low allocation struct based tweening.</summary>
-        public static STStructRotateUI rotateFast(VisualElement visualElement, float degreeAngle, float time, Ease ease = Ease.Linear, Action onComplete = null, bool unscaledTime = false)
+        public static void rotateFast(VisualElement visualElement, float degreeAngle, float time, Ease ease = Ease.Linear, Action onComplete = null, bool unscaledTime = false)
         {
-            return new STStructRotateUI(visualElement, degreeAngle, time, ease, onComplete);
+            new STStructRotateUI(visualElement, degreeAngle, time, ease, onComplete);
         }
         ///<summary>Fast low allocation struct-based tweening.</summary>
-        public static STStructScaleUI scaleFast(VisualElement visualElement, Vector3 scale, float time, Ease ease = Ease.Linear, Action onComplete = null, bool unscaledTime = false)
+        public static void scaleFast(VisualElement visualElement, Vector3 scale, float time, Ease ease = Ease.Linear, Action onComplete = null, bool unscaledTime = false)
         {
-            return new STStructScaleUI(visualElement, scale, time, ease, onComplete, unscaledTime);
+            new STStructScaleUI(visualElement, scale, time, ease, onComplete, unscaledTime);
         }
         ///<summary>Fast low allocation struct-based tweening.</summary>
-        public static STStructScale scaleFast(GameObject gameObject, Vector3 scale, float time, Ease ease = Ease.Linear, Action onComplete = null, bool unscaledTime = false)
+        public static void scaleFast(GameObject gameObject, Vector3 scale, float time, Ease ease = Ease.Linear, Action onComplete = null, bool unscaledTime = false)
         {
-            return new STStructScale(gameObject, scale, time, ease, onComplete, unscaledTime);
+            new STStructScale(gameObject, scale, time, ease, onComplete, unscaledTime);
         }
         ///<sumary>Interpolates float value.</summary>
-        public static STStructValue valueFast(float from, float to, float time, Action<float> callback, Ease ease = Ease.Linear)
+        public static void valueFast(float from, float to, float time, Action<float> callback, Ease ease = Ease.Linear)
         {
-            return new STStructValue(from, to, time, callback, ease);
+            new STStructValue(from, to, time, callback, ease);
         }
         ///<summary>Interpolates Vector3 value.</summary>
-        public static STStructValueVector3 valueFast(Vector3 from, Vector3 to, float time, Action<Vector3> callback, Ease ease = Ease.Linear)
+        public static void valueFast(Vector3 from, Vector3 to, float time, Action<Vector3> callback, Ease ease = Ease.Linear)
         {
-            return new STStructValueVector3(from, to, time, callback, ease);
+            new STStructValueVector3(from, to, time, callback, ease);
         }
         ///<summary>Forces cancelling a struct-based tween instance from outside of scope. Not recommended for mass cancelling due to needs to iteration.</summary>
         public static void TryForceCancel(GameObject gameObject)
@@ -341,7 +340,7 @@ namespace Breadnone
         {
             var instance = new VTweenRotate();
             var trans = gameObject.transform;
-            instance.SetBaseValues(trans, null, angle, direction, duration);
+            instance.SetBaseValues(trans, null, ref angle, direction, ref duration);
             return instance;
         }
         ///<summary>Rotates VisualElement based on angle value.</summary>
@@ -349,7 +348,7 @@ namespace Breadnone
         {
             var instance = new VTweenRotate();
             var trans = visualObject.transform;
-            instance.SetBaseValues(null, trans, angle, direction, duration);
+            instance.SetBaseValues(null, trans, ref angle, direction, ref duration);
             return instance;
         }
         ///<summary>Rotates object based on angle value.</summary>
@@ -358,7 +357,7 @@ namespace Breadnone
             var instance = new VTweenRotate();
             var trans = gameObject.transform;
             instance.vprops.isLocal = true;
-            instance.SetBaseValues(trans, null, to, direction, duration);
+            instance.SetBaseValues(trans, null, ref to, direction, ref duration);
             return instance;
         }
         ///<summary>Scales object based on Vector3.</summary>
